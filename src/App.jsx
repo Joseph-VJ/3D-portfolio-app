@@ -7,9 +7,11 @@ const PORTFOLIO_ITEMS = [
     id: 1,
     type: 'Identity',
     title: "Vijay Joseph . R",
-    subtitle: "Dev • Marketer • Prompt Engineer",
+    subtitle: "Dev • Digital Marketer • Prompt Engineer",
     description: "A multidisciplinary tech professional combining code, AI, and digital strategy. Transforming complex problems into elegant digital solutions.",
     tags: ["Full Stack", "Gen AI", "Strategy"],
+    highlights: ["1 Year Experience", "AI Integration Specialist", "Strategic Thinker"],
+    details: ["Based in India, Open to Remote", "Tech Stack Agnostic", "Problem Solver First"],
     color: "from-cyan-400 to-blue-600",
     accent: "cyan",
     hex: "#06b6d4", // Cyan-500
@@ -23,6 +25,8 @@ const PORTFOLIO_ITEMS = [
     subtitle: "Web & App Development",
     description: "Building scalable, high-performance applications. Expert in modern JavaScript frameworks, responsive design, and seamless API integrations.",
     tags: ["React", "Node.js", "Mobile Apps"],
+    highlights: ["Scalable Architecture", "Clean Code Practices", "Performance Optimization"],
+    details: ["MERN Stack Proficiency", "Cross-Platform Mobile Dev", "Cloud Deployment (Firebase/Vercel)"],
     color: "from-violet-400 to-purple-600",
     accent: "purple",
     hex: "#8b5cf6", // Violet-500
@@ -32,9 +36,11 @@ const PORTFOLIO_ITEMS = [
     id: 3,
     type: 'Innovation',
     title: "AI & Marketing",
-    subtitle: "Prompt Engineering & Growth",
-    description: "Leveraging Generative AI for content automation and precision marketing. Creating data-driven strategies that maximize engagement and ROI.",
-    tags: ["Prompt Engineering", "SEO/SEM", "Analytics"],
+    subtitle: "AI • Prompt Engineering • Growth",
+    description: "Expert in CNN architectures and fine-tuning models like Embedding Gemma (308M), Gemma 3 (270M) & Qwen2 (0.5B). Merging AI with marketing strategy.",
+    tags: ["Machine Learning", "Fine-tuning", "Gen AI"],
+    highlights: ["CNN Architectures", "SLM Fine-tuning", "AI-Driven Growth"],
+    details: ["Custom Model Fine-tuning", "Automation for AI workflow", "Automated Content"],
     color: "from-pink-400 to-rose-600",
     accent: "pink",
     hex: "#ec4899", // Pink-500
@@ -47,6 +53,8 @@ const PORTFOLIO_ITEMS = [
     subtitle: "MSc & BCA Graduate",
     description: "Advanced Master of Science degree coupled with a Bachelor of Computer Applications. A strong theoretical foundation fueling practical innovation.",
     tags: ["Computer Science", "Research", "Algorithms"],
+    highlights: ["Master of Science", "Bachelor of Computer Applications", "Continuous Learner"],
+    details: ["M.Sc. Computer Science", "B.C.A. Computer Applications", "Research on Marketing Analytics"],
     color: "from-amber-300 to-orange-600",
     accent: "amber",
     hex: "#f59e0b", // Amber-500
@@ -59,6 +67,8 @@ const PORTFOLIO_ITEMS = [
     subtitle: "Open for Collaboration",
     description: "Available for freelance projects, consulting, and full-time roles. Let's build something visionary together.",
     tags: ["WhatsApp", "Email", "Instagram"],
+    highlights: ["Quick Response", "Professional Service", "Global Availability"],
+    details: ["Freelance & Contract", "Technical Consultation", "Full-time Opportunities"],
     color: "from-emerald-400 to-teal-600",
     accent: "emerald",
     hex: "#10b981", // Emerald-500
@@ -442,7 +452,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
   return (
     <div 
-      className={`absolute w-full max-w-md aspect-[3/4] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
+      className={`absolute w-full max-w-lg aspect-[9/16] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
       style={style}
       onClick={() => isActive && setFlipped(!flipped)}
     >
@@ -506,6 +516,17 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
               <p className={`text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${item.color} text-center mt-2`}>
                 {item.subtitle}
               </p>
+
+              {item.highlights && (
+                <div className="pt-4 flex flex-col gap-2 w-full px-4">
+                  {item.highlights.map((highlight, i) => (
+                    <div key={i} className="flex items-center gap-3 text-white/90 bg-white/5 p-2 rounded-lg border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${item.color} shadow-[0_0_8px_currentColor]`} />
+                      <span className="text-xs md:text-sm font-semibold tracking-wide">{highlight}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 md:space-y-6">
@@ -545,6 +566,17 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
               <p className="text-slate-300 leading-relaxed text-base md:text-lg text-center font-medium">
                 {item.description}
               </p>
+
+              {item.details && (
+                <ul className="space-y-2 mt-4 w-full px-4">
+                  {item.details.map((detail, i) => (
+                    <li key={i} className="flex items-center gap-3 text-slate-300/80 text-sm md:text-base">
+                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${item.color}`} />
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               {item.links && (
                  <div className="grid grid-cols-1 gap-2 md:gap-3 mt-2 md:mt-4">
@@ -752,7 +784,7 @@ const App = () => {
             />
         </div>
 
-        <div className="relative w-[85vw] md:w-full max-w-md aspect-[3/4] z-10">
+        <div className="relative w-[90vw] md:w-full max-w-lg aspect-[9/16] z-10">
           {PORTFOLIO_ITEMS.map((item, index) => (
             <div 
               key={item.id}
