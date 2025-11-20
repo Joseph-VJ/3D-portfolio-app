@@ -168,18 +168,19 @@ const ParticleBackground = ({ mouseX, mouseY, surge }) => {
         }}
       />
       
-      {/* Floating Particles */}
-      {[...Array(20)].map((_, i) => (
+      {/* Floating Particles - Reduced count for performance */}
+      {[...Array(10)].map((_, i) => (
         <div
           key={i}
           className={`absolute rounded-full bg-white animate-float ${surge ? 'opacity-60' : 'opacity-20'}`}
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 4 + 1}px`,
-            height: `${Math.random() * 4 + 1}px`,
+            width: `${Math.random() * 3 + 1}px`,
+            height: `${Math.random() * 3 + 1}px`,
             animationDelay: `${Math.random() * 5}s`,
-            transition: 'opacity 0.5s'
+            transition: 'opacity 0.5s',
+            willChange: 'transform'
           }}
         />
       ))}
@@ -251,7 +252,7 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
 
         // 2. PERSPECTIVE GRID (FLOOR)
         // Vertical fanning lines
-        const numVLines = 20;
+        const numVLines = 10; // Reduced from 20
         for(let i = -numVLines; i <= numVLines; i++) {
             // X position at bottom of screen spread out, converging to center
             const spread = w * 2; 
@@ -265,7 +266,7 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
         }
 
         // Horizontal moving lines
-        const numHLines = 10;
+        const numHLines = 6; // Reduced from 10
         for(let i = 0; i < numHLines; i++) {
             // Exponential spacing for perspective
             let yPos = cy + ((i * (h/2)) / numHLines) + (gridOffset % (h/2 / numHLines));
@@ -291,7 +292,7 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
         ctx.beginPath();
         ctx.moveTo(0, cy);
         
-        const bars = 50;
+        const bars = 30; // Reduced from 50
         const step = w / bars;
 
         for(let i = 0; i <= bars; i++) {
@@ -324,10 +325,8 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
         
         // Stroke the top edge
         ctx.globalAlpha = 1;
-        ctx.shadowBlur = 15 * dpr;
-        ctx.shadowColor = color;
+        // Removed shadowBlur for performance
         ctx.stroke();
-        ctx.shadowBlur = 0;
       };
 
       // --- COMPOSITE RENDER (RGB SPLIT) ---
@@ -384,17 +383,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
   const isPast = index < activeIndex;
   const offset = index - activeIndex;
   
-  // Calculate beat for border pulse (client-side simulation for React state)
-  const [beatPulse, setBeatPulse] = useState(false);
-
-  useEffect(() => {
-     if(!isPlaying || !isActive) return;
-     const interval = setInterval(() => {
-         setBeatPulse(true);
-         setTimeout(() => setBeatPulse(false), 100);
-     }, 600); // ~100 BPM sim
-     return () => clearInterval(interval);
-  }, [isPlaying, isActive]);
+  // Removed client-side interval for performance. Using CSS animation instead.
 
   useEffect(() => {
     if (!isActive) setFlipped(false);
@@ -423,7 +412,8 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
       `,
     opacity: isPast ? 0 : 1 - offset * 0.2,
     filter: isActive ? 'none' : `brightness(${1 - offset * 0.15}) blur(${offset * 1}px)`,
-    transition: `all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)`
+    transition: `all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)`,
+    willChange: 'transform, opacity' // Optimization
   };
 
   // Holographic Foil Gradient
@@ -466,8 +456,8 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
       <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${flipped ? 'rotate-y-180' : ''}`}>
         
         {/* FRONT FACE */}
-        <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden bg-slate-900/90 backdrop-blur-xl shadow-2xl group border transition-all duration-100
-            ${beatPulse ? `border-[${item.hex}] shadow-[0_0_30px_${item.hex}]` : 'border-white/10 shadow-black/50'}
+        <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden bg-slate-900/95 backdrop-blur-md shadow-2xl group border transition-all duration-100
+            ${isActive && isPlaying ? `animate-pulse-beat border-[${item.hex}] shadow-[0_0_15px_${item.hex}]` : 'border-white/10 shadow-black/50'}
         `}>
           
           {/* Ambient Glow */}
@@ -505,8 +495,8 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
             {/* Centering container for image and text */}
             <div className={`flex flex-col items-center justify-center flex-1 ${item.image ? 'gap-3 md:gap-4' : 'gap-6 md:gap-8'}`}> 
               {item.image && (
-                 <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl transition-transform duration-300 ${beatPulse ? 'scale-105' : 'scale-100'}`}> 
-                    <div className={`absolute inset-0 border-2 rounded-full z-10 ${beatPulse ? 'border-white opacity-100' : 'border-white/20 opacity-50'}`} />
+                 <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl transition-transform duration-300 ${isActive && isPlaying ? 'scale-105' : 'scale-100'}`}> 
+                    <div className={`absolute inset-0 border-2 rounded-full z-10 ${isActive && isPlaying ? 'border-white opacity-100' : 'border-white/20 opacity-50'}`} />
                     <img src={item.image} alt="Vijay Joseph" className="w-full h-full object-cover" /> 
                  </div>
               )}
@@ -543,7 +533,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
                <div className="flex items-center justify-center gap-2 text-white/50 text-[10px] md:text-xs font-mono uppercase group-hover:text-white transition-colors">
                   <span className="animate-pulse">{'>'}</span>
                   <span>Tap to decrypt</span>
-                  <RefreshCw className={`w-3 h-3 ${beatPulse ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3 h-3 ${isActive && isPlaying ? 'animate-spin' : ''}`} />
                </div>
             </div>
           </div>
@@ -551,7 +541,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
         {/* BACK FACE */}
         <div 
-          className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl overflow-hidden bg-slate-900/95 backdrop-blur-xl shadow-2xl p-6 md:p-8 flex flex-col justify-center border ${beatPulse ? `border-[${item.hex}]` : 'border-white/10'}`}
+          className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl overflow-hidden bg-slate-900/95 backdrop-blur-md shadow-2xl p-6 md:p-8 flex flex-col justify-center border ${isActive && isPlaying ? `border-[${item.hex}]` : 'border-white/10'}`}
           style={{ backfaceVisibility: 'hidden' }}
         >
            <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={scanlineStyle} />
@@ -691,12 +681,21 @@ const App = () => {
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
   const containerRef = useRef(null);
 
+  const ticking = useRef(false);
+
   const handleMouseMove = useCallback((e) => {
-    if (!containerRef.current) return;
-    const { innerWidth, innerHeight } = window;
-    const x = (e.clientX - innerWidth / 2) / 25;
-    const y = (e.clientY - innerHeight / 2) / 25;
-    setMousePos({ x, y });
+    if (!ticking.current) {
+      requestAnimationFrame(() => {
+        if (containerRef.current) {
+          const { innerWidth, innerHeight } = window;
+          const x = (e.clientX - innerWidth / 2) / 25;
+          const y = (e.clientY - innerHeight / 2) / 25;
+          setMousePos({ x, y });
+        }
+        ticking.current = false;
+      });
+      ticking.current = true;
+    }
   }, []);
 
   useEffect(() => {
@@ -770,6 +769,12 @@ const App = () => {
           100% { transform: translateX(100%) scaleX(2); opacity: 0; }
         }
         .animate-speed-line { animation: speed-line 0.4s linear forwards; }
+
+        @keyframes pulse-beat {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.02); opacity: 0.8; }
+        }
+        .animate-pulse-beat { animation: pulse-beat 0.6s ease-in-out infinite; }
       `}</style>
 
       <ParticleBackground mouseX={mousePos.x} mouseY={mousePos.y} surge={surge} />
