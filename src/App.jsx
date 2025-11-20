@@ -503,26 +503,28 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
             </div>
 
             {/* Centering container for image and text */}
-            <div className="flex flex-col items-center justify-center flex-1"> 
+            <div className={`flex flex-col items-center justify-center flex-1 ${item.image ? 'gap-4' : 'gap-8'}`}> 
               {item.image && (
-                 <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl mb-4 md:mb-6 transition-transform duration-300 ${beatPulse ? 'scale-105' : 'scale-100'}`}> 
+                 <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl transition-transform duration-300 ${beatPulse ? 'scale-105' : 'scale-100'}`}> 
                     <div className={`absolute inset-0 border-2 rounded-full z-10 ${beatPulse ? 'border-white opacity-100' : 'border-white/20 opacity-50'}`} />
                     <img src={item.image} alt="Vijay Joseph" className="w-full h-full object-cover" /> 
                  </div>
               )}
-              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mt-0 text-center uppercase drop-shadow-lg"> 
-                <GlitchText text={item.title} trigger={isActive} />
-              </h2>
-              <p className={`text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${item.color} text-center mt-2`}>
-                {item.subtitle}
-              </p>
+              <div className="text-center space-y-2">
+                <h2 className={`${item.image ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl'} font-black text-white leading-tight tracking-tight uppercase drop-shadow-lg`}> 
+                  <GlitchText text={item.title} trigger={isActive} />
+                </h2>
+                <p className={`text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${item.color}`}>
+                  {item.subtitle}
+                </p>
+              </div>
 
               {item.highlights && (
-                <div className="pt-4 flex flex-col gap-2 w-full px-4">
+                <div className="w-full px-2 flex flex-col gap-3">
                   {item.highlights.map((highlight, i) => (
-                    <div key={i} className="flex items-center gap-3 text-white/90 bg-white/5 p-2 rounded-lg border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                      <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${item.color} shadow-[0_0_8px_currentColor]`} />
-                      <span className="text-xs md:text-sm font-semibold tracking-wide">{highlight}</span>
+                    <div key={i} className="flex items-center gap-4 text-white/90 bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-all hover:scale-[1.02]">
+                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${item.color} shadow-[0_0_10px_currentColor]`} />
+                      <span className="text-sm md:text-base font-semibold tracking-wide">{highlight}</span>
                     </div>
                   ))}
                 </div>
