@@ -664,6 +664,10 @@ const WelcomeScreen = ({ onEnter }) => (
       >
         Start Engine
       </button>
+      <div className="flex items-center justify-center gap-2 text-white/40 text-[10px] md:text-xs font-mono mt-4 animate-pulse">
+         <Volume2 className="w-3 h-3 md:w-4 md:h-4" />
+         <span>Sound On • Headphones Recommended</span>
+      </div>
     </div>
   </div>
 );
