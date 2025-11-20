@@ -410,8 +410,8 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
         translateZ(${-offset * 50}px)
         ${isActive ? `rotateX(${(mouseY * 0.05)}deg) rotateY(${(mouseX * 0.05)}deg)` : ''}
       `,
-    opacity: isPast ? 0 : 1 - offset * 0.2,
-    filter: isActive ? 'none' : `brightness(${1 - offset * 0.15}) blur(${offset * 1}px)`,
+    opacity: isActive ? 1 : 0,
+    filter: 'none',
     transition: `all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)`,
     willChange: 'transform, opacity' // Optimization
   };
@@ -456,18 +456,14 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
       <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${flipped ? 'rotate-y-180' : ''}`}>
         
         {/* FRONT FACE */}
-        <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden bg-slate-900/95 backdrop-blur-md shadow-2xl group border transition-all duration-100
+        <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden bg-slate-900 shadow-2xl group border transition-all duration-100
             ${isActive && isPlaying ? `animate-pulse-beat border-[${item.hex}] shadow-[0_0_15px_${item.hex}]` : 'border-white/10 shadow-black/50'}
         `}>
           
           {/* Ambient Glow */}
           <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
           
-          {/* CRT Scanline Overlay */}
-          <div className="absolute inset-0 z-20 pointer-events-none opacity-30" style={scanlineStyle} />
-
-          {/* Holographic Foil Layer */}
-          <div className="absolute inset-0 z-30 pointer-events-none" style={holoStyle} />
+          {/* Overlays removed for cleaner look */}
 
           {/* Visual Effects Layer */}
           {isPast && (
@@ -541,7 +537,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
         {/* BACK FACE */}
         <div 
-          className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl overflow-hidden bg-slate-900/95 backdrop-blur-md shadow-2xl p-6 md:p-8 flex flex-col justify-center border ${isActive && isPlaying ? `border-[${item.hex}]` : 'border-white/10'}`}
+          className={`absolute inset-0 backface-hidden rotate-y-180 rounded-3xl overflow-hidden bg-slate-900 shadow-2xl p-6 md:p-8 flex flex-col justify-center border ${isActive && isPlaying ? `border-[${item.hex}]` : 'border-white/10'}`}
           style={{ backfaceVisibility: 'hidden' }}
         >
            <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={scanlineStyle} />
