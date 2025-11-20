@@ -452,7 +452,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
   return (
     <div 
-      className={`absolute w-[85vw] h-[75vh] md:w-[400px] md:h-[700px] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
       style={style}
       onClick={() => isActive && setFlipped(!flipped)}
     >
@@ -736,7 +736,7 @@ const App = () => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans selection:bg-cyan-500/30"
+      className="relative w-screen h-[100dvh] overflow-hidden bg-slate-950 font-sans selection:bg-cyan-500/30"
     >
       <style>{`
         .perspective-1000 { perspective: 1000px; }
@@ -786,7 +786,7 @@ const App = () => {
             />
         </div>
 
-        <div className="relative w-[85vw] h-[75vh] md:w-[400px] md:h-[700px] z-10">
+        <div className="relative w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] z-10">
           {PORTFOLIO_ITEMS.map((item, index) => (
             <div 
               key={item.id}
