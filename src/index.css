@@ -9,6 +9,97 @@ html {
   scroll-behavior: smooth;
 }
 
+/* 3D Card Container */
+.card-3d-container {
+  transform-style: preserve-3d;
+  perspective: 1200px;
+}
+
+/* Multi-layer 3D Card */
+.card-3d {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Card Stack Effect */
+@keyframes card-stack-in {
+  0% {
+    opacity: 0;
+    transform: translateY(100px) rotateX(30deg) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) rotateX(-5deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+}
+
+@keyframes card-slide-out-left {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-120%) rotateY(-30deg) scale(0.8);
+  }
+}
+
+@keyframes card-slide-out-right {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) rotateY(30deg) scale(0.8);
+  }
+}
+
+@keyframes card-float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120vh) rotateX(-25deg) scale(0.7);
+  }
+}
+
+@keyframes card-warp-zoom {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateZ(0) rotateZ(0);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3) translateZ(500px) rotateZ(20deg);
+  }
+}
+
+.card-exit-left {
+  animation: card-slide-out-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.card-exit-right {
+  animation: card-slide-out-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.card-exit-up {
+  animation: card-float-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.card-exit-zoom {
+  animation: card-warp-zoom 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 /* Disable text selection on interactive elements */
 .touch-interactive {
   -webkit-user-select: none;
@@ -219,6 +310,33 @@ html {
 @media (max-width: 768px) {
   * {
     -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Simplify animations on mobile for better performance */
+  .card-exit-left,
+  .card-exit-right,
+  .card-exit-up,
+  .card-exit-zoom {
+    animation-duration: 0.3s !important;
+  }
+  
+  /* Disable glow effects on mobile - they are GPU intensive */
+  .glow-effect {
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Reduce float animation complexity */
+  .float-animation {
+    animation-duration: 6s !important;
+  }
+  
+  /* Simpler scroll reveals on mobile */
+  .scroll-reveal-up,
+  .scroll-reveal-left,
+  .scroll-reveal-right,
+  .scroll-reveal-scale {
+    animation-duration: 0.3s !important;
   }
   
   /* Reduce motion for better performance on mobile if preferred */

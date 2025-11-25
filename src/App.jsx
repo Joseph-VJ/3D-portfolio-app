@@ -196,160 +196,51 @@ const PORTFOLIO_ITEMS = [
 
 // --- Components ---
 
-const GlitchText = ({ text, className, as: Component = 'span', trigger, isMobile = false }) => {
-  const [displayText, setDisplayText] = useState(text);
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
-  
-  useEffect(() => {
-    // Skip animation on mobile for performance
-    if (isMobile) {
-      setDisplayText(text);
-      return;
-    }
-    
-    let iterations = 0;
-    const interval = setInterval(() => {
-      setDisplayText(text
-        .split('')
-        .map((letter, index) => {
-          if (index < iterations) return text[index];
-          return chars[Math.floor(Math.random() * chars.length)];
-        })
-        .join('')
-      );
-      
-      if (iterations >= text.length) clearInterval(interval);
-      iterations += 1 / 2; // Faster completion
-    }, 40); // Slightly slower interval for better performance
-    
-    return () => clearInterval(interval);
-  }, [text, trigger, isMobile]);
-
-  return <Component className={className}>{displayText}</Component>;
+// Simplified text component - no animations for better performance
+const GlitchText = ({ text, className, as: Component = 'span' }) => {
+  return <Component className={className}>{text}</Component>;
 };
 
-const SpeedLines = ({ type, isMobile = false }) => {
-  if (type !== 'slide-right' && type !== 'slide-left' && type !== 'warp-zoom') return null;
-  // Disable on mobile for performance
-  if (isMobile) return null;
-  
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-50 mix-blend-overlay">
-      <svg className="w-full h-full" preserveAspectRatio="none">
-        {/* Dynamic Speed Lines - reduced count */}
-        {[...Array(5)].map((_, i) => (
-          <rect
-            key={i}
-            x={Math.random() * 100 + "%"}
-            y={Math.random() * 100 + "%"}
-            width={type === 'warp-zoom' ? Math.random() * 100 + 50 : Math.random() * 100 + 100}
-            height={Math.random() * 2 + 1}
-            fill="white"
-            className="animate-speed-line"
-            style={{
-              transform: type === 'warp-zoom' 
-                ? `rotate(${Math.random() * 360}deg)` 
-                : `rotate(${type === 'slide-right' ? -15 : 15}deg)`,
-              animationDelay: `${Math.random() * 0.5}s`,
-              animationDuration: '0.5s'
-            }}
-          />
-        ))}
-      </svg>
-    </div>
-  );
-};
+// Disabled SpeedLines for performance
+const SpeedLines = () => null;
 
-const ParticleBackground = ({ mouseX, mouseY, surge, isMobile = false, touchPos = null }) => {
-  // Memoize particle positions to prevent re-renders
-  const particles = useMemo(() => 
-    [...Array(isMobile ? 6 : 12)].map(() => ({
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      size: Math.random() * 3 + 1,
-      delay: Math.random() * 5,
-      color: ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981'][Math.floor(Math.random() * 4)]
-    })), [isMobile]);
-
+const ParticleBackground = ({ isMobile = false }) => {
+  // Ultra-simplified background for maximum performance
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
-      {/* Deep Atmospheric Pulse */}
-      <div className={`absolute inset-0 ${surge ? 'opacity-60' : 'opacity-30'} bg-[radial-gradient(circle_at_50%_50%,_#1e293b_0%,_#020617_100%)] transition-opacity duration-300`} />
+      {/* Simple gradient background */}
+      <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_50%,_#1e293b_0%,_#020617_100%)]" />
       
-      {/* Touch-reactive glow */}
-      {touchPos && (
-        <div 
-          className="absolute w-[200px] h-[200px] rounded-full blur-[80px] bg-white/30 transition-all duration-150"
-          style={{ 
-            left: touchPos.x - 100, 
-            top: touchPos.y - 100,
-            opacity: 0.5
-          }}
-        />
-      )}
-      
-      {/* Dynamic Orbs with Surge Effect - simplified transforms on mobile */}
+      {/* Static orbs - no animation for performance */}
       <div 
-        className={`absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}
-          ${surge ? 'opacity-60 bg-cyan-500 scale-110' : 'opacity-20 bg-blue-600 scale-100'} transition-all duration-500`}
-        style={isMobile ? {} : { transform: `translate(${mouseX * -20}px, ${mouseY * -20}px)` }}
+        className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full blur-[80px] opacity-20 bg-blue-600"
       />
       <div 
-        className={`absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}
-          ${surge ? 'opacity-60 bg-purple-500 scale-110' : 'opacity-20 bg-purple-600 scale-100'} transition-all duration-500`}
-        style={isMobile ? {} : { transform: `translate(${mouseX * 20}px, ${mouseY * 20}px)` }}
+        className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[80px] opacity-20 bg-purple-600"
       />
       
-      {/* Additional animated orb */}
-      <div 
-        className={`absolute top-[30%] right-[20%] w-[30vw] h-[30vw] rounded-full blur-[100px] animate-pulse-slow
-          ${surge ? 'opacity-40 bg-pink-500' : 'opacity-10 bg-pink-600'} transition-all duration-500`}
-      />
-
-      {/* Digital Mesh Grid - Simplified on mobile */}
+      {/* Grid only on desktop */}
       {!isMobile && (
         <div 
-          className={`absolute inset-0 ${surge ? 'opacity-20' : 'opacity-[0.08]'} transition-opacity duration-300`}
+          className="absolute inset-0 opacity-[0.05]"
           style={{ 
             backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-            transform: `perspective(1000px) rotateX(60deg) translateY(${mouseY * 0.5}px) scale(${surge ? 2.2 : 2})`,
+            backgroundSize: '50px 50px',
+            transform: 'perspective(1000px) rotateX(60deg) scale(2)',
             transformOrigin: 'center top'
           }}
         />
       )}
-      
-      {/* Floating Particles with colors */}
-      {particles.map((p, i) => (
-        <div
-          key={i}
-          className={`absolute rounded-full ${isMobile ? '' : 'animate-float'} ${surge ? 'opacity-80 scale-150' : 'opacity-30 scale-100'} transition-all duration-300`}
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            background: p.color,
-            boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
-            animationDelay: isMobile ? undefined : `${p.delay}s`
-          }}
-        />
-      ))}
-      
-      {/* Scanlines overlay for retro effect */}
-      <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px)',
-        }}
-      />
     </div>
   );
 };
 
 // --- NEON DRIFT HORIZON VISUALIZER ---
-// Mobile-optimized with reduced complexity
+// Ultra-simplified for old phones
 const AudioVisualizer = ({ isPlaying, colorHex, className, isMobile = false }) => {
+  // Disable on mobile for performance
+  if (isMobile) return null;
+  
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -358,7 +249,7 @@ const AudioVisualizer = ({ isPlaying, colorHex, className, isMobile = false }) =
     const ctx = canvas.getContext('2d');
     let animationId;
     let lastTime = 0;
-    const targetFPS = isMobile ? 30 : 60; // Throttle FPS on mobile
+    const targetFPS = 30; // Lower FPS for better performance
     const frameInterval = 1000 / targetFPS;
     
     // State for the moving grid
@@ -367,7 +258,7 @@ const AudioVisualizer = ({ isPlaying, colorHex, className, isMobile = false }) =
     // Cache canvas dimensions to avoid reflow
     let w, h, cx, cy, dpr;
     const updateDimensions = () => {
-      dpr = isMobile ? 1 : (window.devicePixelRatio || 1); // Lower resolution on mobile
+      dpr = 1; // Always use 1x resolution for performance
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
@@ -561,36 +452,93 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
       }
     }
     switch(type) {
-      case 'float-up': return `translateY(-150vh) rotate(-10deg) scale(0.9)`;
-      case 'slide-right': return `translateX(150vw) rotate(45deg) scale(1.1)`;
-      case 'warp-zoom': return `scale(5) translateZ(1000px) rotateZ(45deg)`; 
-      case 'slide-left': return `translateX(-150vw) rotate(-45deg) scale(0.8)`;
-      case 'drop-down': return `translateY(150vh) rotateX(60deg)`;
-      default: return `translateY(-200%) rotate(-20deg) scale(0.8)`;
+      case 'float-up': return `translateY(-150vh) rotateX(-30deg) rotateZ(-15deg) scale(0.6)`;
+      case 'slide-right': return `translateX(150vw) rotateY(45deg) rotateZ(20deg) scale(0.7)`;
+      case 'warp-zoom': return `scale(4) translateZ(800px) rotateZ(30deg) rotateX(20deg)`; 
+      case 'slide-left': return `translateX(-150vw) rotateY(-45deg) rotateZ(-20deg) scale(0.7)`;
+      case 'drop-down': return `translateY(150vh) rotateX(45deg) scale(0.5)`;
+      default: return `translateY(-200%) rotateX(-30deg) scale(0.6)`;
     }
   };
 
   // Calculate swipe-based transform
   const swipeTransform = isActive && isMobile 
-    ? `translateX(${swipeOffset.x}px) rotate(${swipeOffset.x * 0.05}deg)`
+    ? `translateX(${swipeOffset.x}px) rotate(${swipeOffset.x * 0.02}deg)`
     : '';
+
+  // Multi-layered 3D card positioning - like stacked vinyl records
+  const getCardTransform = () => {
+    if (isPast) {
+      return getDiscardTransform(item.animation);
+    }
+    
+    if (isMobile) {
+      // Mobile: Dramatic stacked cards with visible depth - like the reference image
+      // Each card is offset down-right with rotation for that "fanned stack" look
+      const stackOffsetY = offset * 25;  // Vertical offset between cards
+      const stackOffsetX = offset * 8;   // Slight horizontal offset
+      const stackScale = 1 - (offset * 0.06);  // Scale down background cards more
+      const stackRotateZ = offset * -3;  // Slight rotation for fanned effect
+      const stackRotateX = offset * 4;   // Tilt back for 3D depth
+      
+      return `
+        translateY(${stackOffsetY}px) 
+        translateX(${stackOffsetX}px)
+        translateZ(${-offset * 80}px)
+        scale(${stackScale}) 
+        rotateZ(${stackRotateZ}deg)
+        rotateX(${stackRotateX}deg)
+        ${swipeTransform}
+      `;
+    }
+    
+    // Desktop: Full 3D with mouse interaction
+    const stackOffsetY = offset * 20;
+    const stackOffsetX = offset * 10;
+    const stackScale = 1 - (offset * 0.05);
+    const stackRotateZ = offset * -2;
+    const stackRotateX = offset * 3;
+    
+    return `
+      translateY(${stackOffsetY}px) 
+      translateX(${stackOffsetX}px)
+      translateZ(${-offset * 100}px)
+      scale(${stackScale}) 
+      rotateZ(${stackRotateZ}deg)
+      rotateX(${stackRotateX}deg)
+      ${isActive ? `rotateX(${(mouseY * 0.02)}deg) rotateY(${(mouseX * 0.02)}deg)` : ''}
+    `;
+  };
+
+  // Dynamic shadow based on card depth - more dramatic
+  const getCardShadow = () => {
+    if (isPast) return 'none';
+    if (isActive) {
+      return `
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 12px 24px -8px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1)
+      `;
+    }
+    // Background cards have softer shadows
+    const shadowOpacity = Math.max(0.1, 0.3 - (offset * 0.1));
+    return `0 ${10 + offset * 5}px ${20 + offset * 10}px -5px rgba(0, 0, 0, ${shadowOpacity})`;
+  };
 
   const style = {
     zIndex: total - index,
-    transform: isPast 
-      ? getDiscardTransform(item.animation)
-      : isMobile 
-        ? `translateY(${offset * 12}px) scale(${1 - offset * 0.05}) ${swipeTransform}`
-        : `
-          translateY(${offset * 12}px) 
-          scale(${1 - offset * 0.05}) 
-          translateZ(${-offset * 50}px)
-          ${isActive ? `rotateX(${(mouseY * 0.05)}deg) rotateY(${(mouseX * 0.05)}deg)` : ''}
-        `,
-    opacity: isActive ? 1 : 0,
-    filter: 'none',
-    transition: isMobile ? 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
-    willChange: 'transform, opacity'
+    transform: getCardTransform(),
+    opacity: isPast ? 0 : isActive ? 1 : Math.max(0.5, 0.9 - (offset * 0.15)),
+    // Simplified filter for mobile - no blur which is GPU intensive
+    filter: isMobile ? 'none' : (isPast ? 'blur(10px)' : isActive ? 'none' : `blur(${offset * 0.3}px)`),
+    // Simpler shadow for mobile
+    boxShadow: isMobile ? '0 10px 30px -10px rgba(0,0,0,0.3)' : getCardShadow(),
+    // Faster, simpler transition for mobile
+    transition: isMobile 
+      ? 'transform 0.4s ease-out, opacity 0.3s ease' 
+      : 'all 0.7s cubic-bezier(0.23, 1, 0.32, 1)',
+    willChange: isMobile ? 'transform' : 'transform, opacity, filter',
+    transformStyle: 'preserve-3d'
   };
 
   // Holographic Foil Gradient
@@ -604,15 +552,16 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
     )
   `;
   
-  const holoStyle = isActive ? {
+  // Disable holographic effect on mobile for performance
+  const holoStyle = (isActive && !isMobile) ? {
     backgroundImage: holoGradient,
     transform: `translate(${mouseX * 1.5}px, ${mouseY * 1.5}px) scale(1.2)`,
     opacity: 0.6,
     mixBlendMode: 'color-dodge'
   } : {};
 
-  // CRT Scanlines
-  const scanlineStyle = {
+  // CRT Scanlines - disabled on mobile for performance
+  const scanlineStyle = isMobile ? {} : {
       backgroundImage: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
       backgroundSize: '100% 3px, 3px 100%'
   };
@@ -627,10 +576,26 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
     }
   };
 
+  // Multi-layer shadow for depth
+  const multiLayerShadow = isActive ? `
+    0 2px 4px rgba(0,0,0,0.1),
+    0 4px 8px rgba(0,0,0,0.1),
+    0 8px 16px rgba(0,0,0,0.1),
+    0 16px 32px rgba(0,0,0,0.15),
+    0 32px 64px rgba(0,0,0,0.1)
+  ` : `
+    0 2px 4px rgba(0,0,0,0.05),
+    0 4px 8px rgba(0,0,0,0.05)
+  `;
+
   return (
     <div 
-      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
-      style={style}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
+      style={{
+        ...style,
+        perspective: '1500px',
+        perspectiveOrigin: '50% 30%'  // Higher perspective origin for better stack view
+      }}
       onClick={handleCardClick}
       onTouchStart={(e) => {
         // Don't trigger feedback if touching a button
@@ -639,6 +604,44 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
         }
       }}
     >
+      {/* Multi-layer depth shadows - creates the stacked look */}
+      {!isPast && (
+        <>
+          {/* Layer 1: Card edge highlight for depth */}
+          <div 
+            className="absolute inset-0 rounded-3xl pointer-events-none"
+            style={{
+              background: isActive 
+                ? `linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.2) 100%)`
+                : `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%)`,
+              transform: 'translateZ(1px)',
+              opacity: 1
+            }}
+          />
+          {/* Layer 2: Colored glow for active card */}
+          {isActive && (
+            <div 
+              className={`absolute inset-0 rounded-3xl pointer-events-none bg-gradient-to-br ${item.color}`}
+              style={{
+                transform: 'translateZ(-30px) scale(1.08)',
+                filter: 'blur(50px)',
+                opacity: 0.2
+              }}
+            />
+          )}
+          {/* Layer 3: Bottom shadow for floating effect */}
+          <div 
+            className="absolute inset-x-4 bottom-0 h-20 rounded-3xl pointer-events-none"
+            style={{
+              background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.3))',
+              transform: `translateY(${isActive ? 30 : 20}px) translateZ(-50px) scaleY(0.3)`,
+              filter: `blur(${isActive ? 20 : 15}px)`,
+              opacity: isActive ? 0.6 : 0.3
+            }}
+          />
+        </>
+      )}
+
       {/* Touch feedback ring */}
       {touchFeedback && (
         <div className="absolute inset-0 rounded-3xl border-4 border-white/50 animate-ping-once z-50" />
@@ -659,14 +662,31 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
       <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${flipped ? 'rotate-y-180' : ''}`}>
         
         {/* FRONT FACE */}
-        <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden bg-slate-900 shadow-2xl group border transition-all duration-100
-            ${isActive && isPlaying ? `animate-pulse-beat border-[${item.hex}] shadow-[0_0_15px_${item.hex}]` : 'border-white/10 shadow-black/50'}
-        `}>
+        <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden shadow-2xl group transition-all duration-100
+            ${isActive 
+              ? `bg-slate-900 border-2 ${isPlaying ? `animate-pulse-beat border-[${item.hex}] shadow-[0_0_15px_${item.hex}]` : 'border-white/20'}` 
+              : 'bg-slate-900/95 border border-white/10'
+            }
+        `}
+        style={{
+          // Add subtle inner glow for stacked cards
+          boxShadow: isActive 
+            ? 'inset 0 1px 0 rgba(255,255,255,0.1), 0 25px 50px -12px rgba(0,0,0,0.4)'
+            : 'inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 20px -5px rgba(0,0,0,0.3)'
+        }}
+        >
           
           {/* Ambient Glow */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
+          <div className={`absolute inset-0 bg-gradient-to-br ${item.color} ${isActive ? 'opacity-10' : 'opacity-5'} group-hover:opacity-20 transition-opacity duration-500`} />
           
-          {/* Overlays removed for cleaner look */}
+          {/* Card shine effect for 3D feel */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.1) 100%)',
+              opacity: isActive ? 1 : 0.5
+            }}
+          />
 
           {/* Visual Effects Layer */}
           {isPast && !isMobile && (
@@ -1244,7 +1264,14 @@ const App = () => {
       <ParticleBackground mouseX={mousePos.x} mouseY={mousePos.y} surge={surge} isMobile={isMobile} touchPos={touchPos} />
       <Header isMobile={isMobile} />
 
-      <main className="relative w-full h-full flex items-center justify-center z-10 perspective-1000">
+      <main 
+        className="relative w-full h-full flex items-center justify-center z-10"
+        style={{
+          perspective: isMobile ? '1200px' : '1500px',
+          perspectiveOrigin: isMobile ? '50% 40%' : '50% 50%',
+          transformStyle: 'preserve-3d'
+        }}
+      >
         
         {/* NEON DRIFT VISUALIZER - Fills background behind card */}
         <div className="absolute z-0 top-0 left-0 w-full h-full pointer-events-none">
