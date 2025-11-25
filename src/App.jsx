@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ArrowRight, Github, ExternalLink, Layers, Zap, User, Mail, Code, Star, ChevronRight, RefreshCw, Instagram, Phone, GraduationCap, Cpu, Smartphone, Volume2, VolumeX, Play, Pause, Music } from 'lucide-react';
+import { ArrowRight, Github, ExternalLink, Layers, Zap, User, Mail, Code, Star, ChevronRight, ChevronLeft, RefreshCw, Instagram, Phone, GraduationCap, Cpu, Smartphone, Volume2, VolumeX, Play, Pause, Music, Sparkles } from 'lucide-react';
 
 // Mobile detection hook for performance optimization
 const useIsMobile = () => {
@@ -13,6 +13,105 @@ const useIsMobile = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   return isMobile;
+};
+
+// ============================================
+// TOUCH SWIPE HOOK - Enhanced for mobile
+// ============================================
+const useSwipeGesture = (onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown) => {
+  const touchStart = useRef({ x: 0, y: 0 });
+  const touchEnd = useRef({ x: 0, y: 0 });
+  const [swiping, setSwiping] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState({ x: 0, y: 0 });
+
+  const onTouchStart = (e) => {
+    touchEnd.current = { x: 0, y: 0 };
+    touchStart.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    };
+    setSwiping(true);
+  };
+
+  const onTouchMove = (e) => {
+    touchEnd.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    };
+    const offsetX = touchEnd.current.x - touchStart.current.x;
+    const offsetY = touchEnd.current.y - touchStart.current.y;
+    setSwipeOffset({ x: offsetX * 0.3, y: offsetY * 0.1 });
+  };
+
+  const onTouchEnd = () => {
+    setSwiping(false);
+    setSwipeOffset({ x: 0, y: 0 });
+    
+    if (!touchStart.current.x || !touchEnd.current.x) return;
+    
+    const distanceX = touchStart.current.x - touchEnd.current.x;
+    const distanceY = touchStart.current.y - touchEnd.current.y;
+    const isHorizontal = Math.abs(distanceX) > Math.abs(distanceY);
+    const threshold = 50;
+
+    if (isHorizontal) {
+      if (distanceX > threshold) onSwipeLeft?.();
+      else if (distanceX < -threshold) onSwipeRight?.();
+    } else {
+      if (distanceY > threshold) onSwipeUp?.();
+      else if (distanceY < -threshold) onSwipeDown?.();
+    }
+  };
+
+  return { onTouchStart, onTouchMove, onTouchEnd, swiping, swipeOffset };
+};
+
+// ============================================
+// TOUCH RIPPLE EFFECT COMPONENT
+// ============================================
+const TouchRipple = ({ x, y, color = 'white' }) => {
+  const [visible, setVisible] = useState(true);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      className="fixed pointer-events-none z-[9999]"
+      style={{ left: x - 50, top: y - 50 }}
+    >
+      <div 
+        className="w-[100px] h-[100px] rounded-full animate-ripple"
+        style={{ 
+          background: `radial-gradient(circle, ${color}40 0%, transparent 70%)`,
+        }}
+      />
+    </div>
+  );
+};
+
+// ============================================
+// FLOATING PARTICLES WITH TOUCH INTERACTION
+// ============================================
+const InteractiveParticle = ({ delay, color }) => {
+  const [pos, setPos] = useState({ x: Math.random() * 100, y: Math.random() * 100 });
+  
+  return (
+    <div
+      className="absolute w-1 h-1 rounded-full animate-float-particle"
+      style={{
+        left: `${pos.x}%`,
+        top: `${pos.y}%`,
+        background: color,
+        boxShadow: `0 0 10px ${color}`,
+        animationDelay: `${delay}s`,
+      }}
+    />
+  );
 };
 
 // --- Data ---
@@ -161,37 +260,56 @@ const SpeedLines = ({ type, isMobile = false }) => {
   );
 };
 
-const ParticleBackground = ({ mouseX, mouseY, surge, isMobile = false }) => {
+const ParticleBackground = ({ mouseX, mouseY, surge, isMobile = false, touchPos = null }) => {
   // Memoize particle positions to prevent re-renders
   const particles = useMemo(() => 
-    [...Array(isMobile ? 4 : 8)].map(() => ({
+    [...Array(isMobile ? 6 : 12)].map(() => ({
       left: Math.random() * 100,
       top: Math.random() * 100,
       size: Math.random() * 3 + 1,
-      delay: Math.random() * 5
+      delay: Math.random() * 5,
+      color: ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981'][Math.floor(Math.random() * 4)]
     })), [isMobile]);
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
       {/* Deep Atmospheric Pulse */}
-      <div className={`absolute inset-0 ${surge ? 'opacity-60' : 'opacity-30'} bg-[radial-gradient(circle_at_50%_50%,_#1e293b_0%,_#020617_100%)]`} />
+      <div className={`absolute inset-0 ${surge ? 'opacity-60' : 'opacity-30'} bg-[radial-gradient(circle_at_50%_50%,_#1e293b_0%,_#020617_100%)] transition-opacity duration-300`} />
+      
+      {/* Touch-reactive glow */}
+      {touchPos && (
+        <div 
+          className="absolute w-[200px] h-[200px] rounded-full blur-[80px] bg-white/30 transition-all duration-150"
+          style={{ 
+            left: touchPos.x - 100, 
+            top: touchPos.y - 100,
+            opacity: 0.5
+          }}
+        />
+      )}
       
       {/* Dynamic Orbs with Surge Effect - simplified transforms on mobile */}
       <div 
         className={`absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}
-          ${surge ? 'opacity-60 bg-cyan-500' : 'opacity-20 bg-blue-600'}`}
+          ${surge ? 'opacity-60 bg-cyan-500 scale-110' : 'opacity-20 bg-blue-600 scale-100'} transition-all duration-500`}
         style={isMobile ? {} : { transform: `translate(${mouseX * -20}px, ${mouseY * -20}px)` }}
       />
       <div 
         className={`absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}
-          ${surge ? 'opacity-60 bg-purple-500' : 'opacity-20 bg-purple-600'}`}
+          ${surge ? 'opacity-60 bg-purple-500 scale-110' : 'opacity-20 bg-purple-600 scale-100'} transition-all duration-500`}
         style={isMobile ? {} : { transform: `translate(${mouseX * 20}px, ${mouseY * 20}px)` }}
+      />
+      
+      {/* Additional animated orb */}
+      <div 
+        className={`absolute top-[30%] right-[20%] w-[30vw] h-[30vw] rounded-full blur-[100px] animate-pulse-slow
+          ${surge ? 'opacity-40 bg-pink-500' : 'opacity-10 bg-pink-600'} transition-all duration-500`}
       />
 
       {/* Digital Mesh Grid - Simplified on mobile */}
       {!isMobile && (
         <div 
-          className={`absolute inset-0 ${surge ? 'opacity-20' : 'opacity-[0.08]'}`}
+          className={`absolute inset-0 ${surge ? 'opacity-20' : 'opacity-[0.08]'} transition-opacity duration-300`}
           style={{ 
             backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
             backgroundSize: '40px 40px',
@@ -201,20 +319,30 @@ const ParticleBackground = ({ mouseX, mouseY, surge, isMobile = false }) => {
         />
       )}
       
-      {/* Floating Particles - Reduced count, no animation on mobile */}
+      {/* Floating Particles with colors */}
       {particles.map((p, i) => (
         <div
           key={i}
-          className={`absolute rounded-full bg-white ${isMobile ? '' : 'animate-float'} ${surge ? 'opacity-60' : 'opacity-20'}`}
+          className={`absolute rounded-full ${isMobile ? '' : 'animate-float'} ${surge ? 'opacity-80 scale-150' : 'opacity-30 scale-100'} transition-all duration-300`}
           style={{
             left: `${p.left}%`,
             top: `${p.top}%`,
             width: `${p.size}px`,
             height: `${p.size}px`,
+            background: p.color,
+            boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
             animationDelay: isMobile ? undefined : `${p.delay}s`
           }}
         />
       ))}
+      
+      {/* Scanlines overlay for retro effect */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px)',
+        }}
+      />
     </div>
   );
 };
@@ -398,27 +526,37 @@ const AudioVisualizer = ({ isPlaying, colorHex, className, isMobile = false }) =
   );
 };
 
-const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPlaying, isMobile = false }) => {
+const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouseY, isPlaying, isMobile = false, swipeOffset = { x: 0, y: 0 } }) => {
   const [flipped, setFlipped] = useState(false);
+  const [touchFeedback, setTouchFeedback] = useState(false);
+  const [enterAnim, setEnterAnim] = useState(false);
   const isActive = index === activeIndex;
   const isPast = index < activeIndex;
   const offset = index - activeIndex;
   
-  // Removed client-side interval for performance. Using CSS animation instead.
-
   useEffect(() => {
     if (!isActive) setFlipped(false);
-  }, [isActive]);
+    if (isActive) {
+      setEnterAnim(true);
+      const timer = setTimeout(() => setEnterAnim(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive, activeIndex]);
+
+  const handleTouchStart = () => {
+    setTouchFeedback(true);
+    setTimeout(() => setTouchFeedback(false), 150);
+  };
 
   const getDiscardTransform = (type) => {
-    // Simplified transforms on mobile
+    // Enhanced exit animations
     if (isMobile) {
       switch(type) {
-        case 'float-up': return `translateY(-150vh)`;
-        case 'slide-right': return `translateX(150vw)`;
-        case 'warp-zoom': return `scale(3) translateZ(500px)`; 
-        case 'slide-left': return `translateX(-150vw)`;
-        case 'drop-down': return `translateY(150vh)`;
+        case 'float-up': return `translateY(-150vh) rotate(-5deg) scale(0.8)`;
+        case 'slide-right': return `translateX(150vw) rotate(15deg)`;
+        case 'warp-zoom': return `scale(3) translateZ(500px) rotate(10deg)`; 
+        case 'slide-left': return `translateX(-150vw) rotate(-15deg)`;
+        case 'drop-down': return `translateY(150vh) rotate(5deg) scale(0.8)`;
         default: return `translateY(-200%)`;
       }
     }
@@ -432,12 +570,17 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
     }
   };
 
+  // Calculate swipe-based transform
+  const swipeTransform = isActive && isMobile 
+    ? `translateX(${swipeOffset.x}px) rotate(${swipeOffset.x * 0.05}deg)`
+    : '';
+
   const style = {
     zIndex: total - index,
     transform: isPast 
       ? getDiscardTransform(item.animation)
       : isMobile 
-        ? `translateY(${offset * 12}px) scale(${1 - offset * 0.05})`
+        ? `translateY(${offset * 12}px) scale(${1 - offset * 0.05}) ${swipeTransform}`
         : `
           translateY(${offset * 12}px) 
           scale(${1 - offset * 0.05}) 
@@ -446,7 +589,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
         `,
     opacity: isActive ? 1 : 0,
     filter: 'none',
-    transition: isMobile ? 'all 0.5s ease-out' : 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    transition: isMobile ? 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
     willChange: 'transform, opacity'
   };
 
@@ -479,7 +622,18 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
       className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
       style={style}
       onClick={() => isActive && setFlipped(!flipped)}
+      onTouchStart={handleTouchStart}
     >
+      {/* Touch feedback ring */}
+      {touchFeedback && (
+        <div className="absolute inset-0 rounded-3xl border-4 border-white/50 animate-ping-once z-50" />
+      )}
+      
+      {/* Entry glow effect */}
+      {enterAnim && isActive && (
+        <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${item.color} opacity-30 animate-pulse-fast z-0`} />
+      )}
+
       {isPast && (
         <div 
           className="absolute inset-0 rounded-3xl bg-white/10 blur-md transition-transform duration-1000"
@@ -665,7 +819,7 @@ const Header = ({ isMobile = false }) => (
   </header>
 );
 
-const Progress = ({ total, current, isMobile = false }) => (
+const Progress = ({ total, current, isMobile = false, onDotClick }) => (
   <div className="fixed bottom-4 left-4 md:bottom-8 md:left-8 flex flex-col gap-2 z-50 mix-blend-difference">
     <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-widest">
         {isMobile 
@@ -673,41 +827,169 @@ const Progress = ({ total, current, isMobile = false }) => (
           : <GlitchText text={`System Load: ${Math.round(((current + 1) / total) * 100)}%`} isMobile={isMobile} />
         }
     </span>
-    <div className="flex gap-1">
+    <div className="flex gap-1.5">
       {[...Array(total)].map((_, i) => (
-        <div 
-          key={i} 
-          className={`h-1 rounded-full transition-all duration-500 ${i === current ? 'w-8 md:w-12 bg-white shadow-[0_0_10px_white]' : i < current ? 'w-1.5 md:w-2 bg-white/50' : 'w-1.5 md:w-2 bg-white/10'}`}
+        <button 
+          key={i}
+          onClick={() => onDotClick && onDotClick(i)}
+          className={`rounded-full transition-all duration-500 active:scale-150 ${
+            i === current 
+              ? 'w-8 md:w-12 h-2 bg-white shadow-[0_0_15px_white] animate-pulse' 
+              : i < current 
+                ? 'w-2 h-2 bg-white/60 hover:bg-white/80' 
+                : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+          }`}
         />
       ))}
     </div>
+    {/* Swipe hint for mobile */}
+    {isMobile && current === 0 && (
+      <div className="flex items-center gap-1 text-white/40 text-[9px] mt-1 animate-pulse">
+        <ChevronLeft className="w-3 h-3" />
+        <span>Swipe cards</span>
+        <ChevronRight className="w-3 h-3" />
+      </div>
+    )}
   </div>
 );
 
-const WelcomeScreen = ({ onEnter }) => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 text-white p-4">
-    <div className="text-center space-y-6 md:space-y-8 animate-in fade-in zoom-in duration-1000">
-      <div className="relative inline-block">
-        <div className="absolute inset-0 bg-cyan-500 blur-3xl opacity-20 animate-pulse"></div>
-        <Zap className="w-16 h-16 md:w-24 md:h-24 mx-auto text-white relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+const WelcomeScreen = ({ onEnter }) => {
+  const [showButton, setShowButton] = useState(false);
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    // Delayed button appearance
+    const timer = setTimeout(() => setShowButton(true), 1500);
+    
+    // Generate floating particles
+    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 1,
+      delay: Math.random() * 3,
+      color: ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'][Math.floor(Math.random() * 5)]
+    }));
+    setParticles(newParticles);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 text-white p-4 overflow-hidden">
+      {/* Animated background particles */}
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="absolute rounded-full animate-float-particle opacity-40"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            background: p.color,
+            boxShadow: `0 0 ${p.size * 4}px ${p.color}`,
+            animationDelay: `${p.delay}s`
+          }}
+        />
+      ))}
+      
+      {/* Radial gradient glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,_rgba(99,102,241,0.15)_0%,_transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,_rgba(236,72,153,0.1)_0%,_transparent_40%)]" />
+      
+      <div className="text-center space-y-6 md:space-y-8 relative z-10">
+        {/* Logo with glow */}
+        <div className="relative inline-block animate-bounce-slow">
+          <div className="absolute inset-0 bg-cyan-500 blur-3xl opacity-30 animate-pulse scale-150"></div>
+          <div className="absolute inset-0 bg-purple-500 blur-2xl opacity-20 animate-pulse scale-125" style={{ animationDelay: '0.5s' }}></div>
+          <Zap className="w-16 h-16 md:w-24 md:h-24 mx-auto text-white relative z-10 drop-shadow-[0_0_25px_rgba(255,255,255,0.6)]" />
+        </div>
+        
+        {/* Title with stagger animation */}
+        <div className="overflow-hidden">
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter italic animate-slide-up">
+            VIJAY<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 animate-gradient-x">.DEV</span>
+          </h1>
+        </div>
+        
+        {/* Subtitle */}
+        <p className="text-white/60 text-sm md:text-xl tracking-[0.3em] md:tracking-[0.5em] uppercase font-bold animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          Initialize System
+        </p>
+        
+        {/* Animated loading bar */}
+        <div className="w-48 md:w-64 h-1 mx-auto bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 animate-loading-bar rounded-full" />
+        </div>
+        
+        {/* Start button with pulse */}
+        {showButton && (
+          <button 
+            onClick={onEnter}
+            className="relative px-8 py-3 md:px-10 md:py-4 bg-white text-black text-sm md:text-base font-black tracking-widest rounded hover:scale-110 active:scale-95 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)] uppercase animate-fade-in group overflow-hidden"
+          >
+            <span className="relative z-10 group-hover:text-white transition-colors">Start Engine</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </button>
+        )}
+        
+        {/* Sound hint with animation */}
+        <div className="flex items-center justify-center gap-2 text-white/40 text-[10px] md:text-xs font-mono mt-4 animate-pulse">
+           <Volume2 className="w-3 h-3 md:w-4 md:h-4" />
+           <span>Sound On • Headphones Recommended</span>
+        </div>
+        
+        {/* Touch hint for mobile */}
+        <div className="flex items-center justify-center gap-2 text-white/30 text-[9px] md:hidden animate-bounce">
+          <Sparkles className="w-3 h-3" />
+          <span>Swipe to navigate cards</span>
+        </div>
       </div>
-      <h1 className="text-5xl md:text-8xl font-black tracking-tighter italic">
-        VIJAY<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600">.DEV</span>
-      </h1>
-      <p className="text-white/60 text-sm md:text-xl tracking-[0.3em] md:tracking-[0.5em] uppercase font-bold">Initialize System</p>
-      <button 
-        onClick={onEnter}
-        className="px-8 py-3 md:px-10 md:py-4 bg-white text-black text-sm md:text-base font-black tracking-widest rounded hover:scale-110 hover:bg-cyan-400 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] uppercase"
-      >
-        Start Engine
-      </button>
-      <div className="flex items-center justify-center gap-2 text-white/40 text-[10px] md:text-xs font-mono mt-4 animate-pulse">
-         <Volume2 className="w-3 h-3 md:w-4 md:h-4" />
-         <span>Sound On • Headphones Recommended</span>
-      </div>
+      
+      <style>{`
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
+        
+        @keyframes gradient-x {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x { 
+          background-size: 200% 200%;
+          animation: gradient-x 3s ease infinite; 
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+        
+        @keyframes loading-bar {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+        .animate-loading-bar { animation: loading-bar 1.5s ease-out forwards; }
+        
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.4; }
+          50% { transform: translateY(-30px) translateX(10px); opacity: 0.8; }
+        }
+        .animate-float-particle { animation: float-particle 6s ease-in-out infinite; }
+        
+        @keyframes slide-up {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up { animation: slide-up 0.8s ease-out forwards; }
+      `}</style>
     </div>
-  </div>
-);
+  );
+};
 
 const App = () => {
   const [started, setStarted] = useState(false);
@@ -716,10 +998,51 @@ const App = () => {
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [ripples, setRipples] = useState([]);
+  const [touchPos, setTouchPos] = useState(null);
   const containerRef = useRef(null);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
+
+  // Swipe gesture handling
+  const handleSwipeLeft = () => {
+    if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
+      triggerSurge();
+      setActiveIndex(prev => prev + 1);
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (activeIndex > 0) {
+      triggerSurge();
+      setActiveIndex(prev => prev - 1);
+    }
+  };
+
+  const swipeHandlers = useSwipeGesture(handleSwipeLeft, handleSwipeRight, handleSwipeLeft, null);
+
+  const triggerSurge = () => {
+    setSurge(true);
+    setTimeout(() => setSurge(false), 600);
+  };
+
+  // Touch ripple effect
+  const handleTouch = (e) => {
+    if (!isMobile) return;
+    const touch = e.touches?.[0] || e;
+    const x = touch.clientX || touch.pageX;
+    const y = touch.clientY || touch.pageY;
+    
+    setTouchPos({ x, y });
+    setTimeout(() => setTouchPos(null), 300);
+    
+    const newRipple = { id: Date.now(), x, y };
+    setRipples(prev => [...prev, newRipple]);
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== newRipple.id));
+    }, 700);
+  };
 
   const handleMouseMove = useCallback((e) => {
     // Skip mouse tracking on mobile for performance
@@ -751,8 +1074,7 @@ const App = () => {
   }, [started, handleMouseMove]);
 
   const handleNext = () => {
-    setSurge(true);
-    setTimeout(() => setSurge(false), 600);
+    triggerSurge();
 
     if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
       setActiveIndex(prev => prev + 1);
@@ -767,6 +1089,20 @@ const App = () => {
     }
   };
 
+  const handlePrev = () => {
+    if (activeIndex > 0) {
+      triggerSurge();
+      setActiveIndex(prev => prev - 1);
+    }
+  };
+
+  const handleDotClick = (index) => {
+    if (index !== activeIndex) {
+      triggerSurge();
+      setActiveIndex(index);
+    }
+  };
+
   if (!started) {
     return <WelcomeScreen onEnter={() => setStarted(true)} />;
   }
@@ -777,6 +1113,9 @@ const App = () => {
     <div 
       ref={containerRef}
       className="relative w-screen h-[100dvh] overflow-hidden bg-slate-950 font-sans selection:bg-cyan-500/30"
+      onTouchStart={(e) => { swipeHandlers.onTouchStart(e); handleTouch(e); }}
+      onTouchMove={swipeHandlers.onTouchMove}
+      onTouchEnd={swipeHandlers.onTouchEnd}
     >
       <style>{`
         /* Mobile-first performance optimizations */
@@ -801,6 +1140,38 @@ const App = () => {
           100% { transform: translateY(0px); }
         }
         .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+          25% { transform: translateY(-30px) translateX(10px); opacity: 0.8; }
+          50% { transform: translateY(-50px) translateX(-10px); opacity: 0.5; }
+          75% { transform: translateY(-30px) translateX(15px); opacity: 0.8; }
+        }
+        .animate-float-particle { animation: float-particle 8s ease-in-out infinite; }
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.1; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(1.1); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+        
+        @keyframes pulse-fast {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+        }
+        .animate-pulse-fast { animation: pulse-fast 0.3s ease-in-out; }
+        
+        @keyframes ping-once {
+          0% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(1.2); opacity: 0; }
+        }
+        .animate-ping-once { animation: ping-once 0.3s ease-out forwards; }
+        
+        @keyframes ripple {
+          0% { transform: scale(0); opacity: 1; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+        .animate-ripple { animation: ripple 0.6s ease-out forwards; }
         
         @keyframes spin-slow {
           from { transform: rotate(0deg); }
@@ -827,9 +1198,26 @@ const App = () => {
           50% { transform: scale(1.02); opacity: 0.8; }
         }
         .animate-pulse-beat { animation: pulse-beat 0.6s ease-in-out infinite; }
+        
+        @keyframes slide-up-fade {
+          0% { transform: translateY(30px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up { animation: slide-up-fade 0.5s ease-out forwards; }
+        
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 20px currentColor; }
+          50% { box-shadow: 0 0 40px currentColor, 0 0 60px currentColor; }
+        }
+        .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
       `}</style>
 
-      <ParticleBackground mouseX={mousePos.x} mouseY={mousePos.y} surge={surge} isMobile={isMobile} />
+      {/* Touch Ripple Effects */}
+      {ripples.map(ripple => (
+        <TouchRipple key={ripple.id} x={ripple.x} y={ripple.y} color={activeItem?.hex || 'white'} />
+      ))}
+
+      <ParticleBackground mouseX={mousePos.x} mouseY={mousePos.y} surge={surge} isMobile={isMobile} touchPos={touchPos} />
       <Header isMobile={isMobile} />
 
       <main className="relative w-full h-full flex items-center justify-center z-10 perspective-1000">
@@ -857,17 +1245,19 @@ const App = () => {
                 total={PORTFOLIO_ITEMS.length}
                 activeIndex={activeIndex}
                 onNext={handleNext}
+                onPrev={handlePrev}
                 mouseX={mousePos.x}
                 mouseY={mousePos.y}
                 isPlaying={isMusicPlaying && started}
                 isMobile={isMobile}
+                swipeOffset={swipeHandlers.swipeOffset}
               />
             </div>
           ))}
         </div>
       </main>
 
-      <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} />
+      <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
       {/* Hidden Youtube Player for Background Music - PHONK PLAYLIST */}
       {isMusicPlaying && started && (
@@ -882,10 +1272,21 @@ const App = () => {
         </div>
       )}
 
-      <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-3 md:gap-4 z-50">
+      {/* Navigation Controls */}
+      <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
+        {/* Previous Button - Mobile only */}
+        {isMobile && activeIndex > 0 && (
+          <button 
+            onClick={handlePrev}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white active:scale-90 transition-all duration-300"
+          >
+            <ChevronLeft className="w-5 h-5 text-white group-hover:text-black transition-colors" />
+          </button>
+        )}
+        
         <button 
           onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 transition-all duration-300"
+          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
           title={isMusicPlaying ? "Pause Music" : "Play Music"}
         >
           {isMusicPlaying ? (
@@ -901,11 +1302,20 @@ const App = () => {
         </div>
         <button 
           onClick={handleNext}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 transition-all duration-300"
+          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
         >
           <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
         </button>
       </div>
+      
+      {/* Card counter indicator - Mobile */}
+      {isMobile && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
+          <div className="px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/80 text-xs font-bold tracking-wider">
+            {activeIndex + 1} / {PORTFOLIO_ITEMS.length}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
