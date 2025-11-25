@@ -1,5 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ArrowRight, Github, ExternalLink, Layers, Zap, User, Mail, Code, Star, ChevronRight, RefreshCw, Instagram, Phone, GraduationCap, Cpu, Smartphone, Volume2, VolumeX, Play, Pause, Music } from 'lucide-react';
+
+// Mobile detection hook for performance optimization
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  return isMobile;
+};
 
 // --- Data ---
 const PORTFOLIO_ITEMS = [
@@ -83,11 +97,17 @@ const PORTFOLIO_ITEMS = [
 
 // --- Components ---
 
-const GlitchText = ({ text, className, as: Component = 'span', trigger }) => {
+const GlitchText = ({ text, className, as: Component = 'span', trigger, isMobile = false }) => {
   const [displayText, setDisplayText] = useState(text);
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&';
   
   useEffect(() => {
+    // Skip animation on mobile for performance
+    if (isMobile) {
+      setDisplayText(text);
+      return;
+    }
+    
     let iterations = 0;
     const interval = setInterval(() => {
       setDisplayText(text
@@ -100,23 +120,25 @@ const GlitchText = ({ text, className, as: Component = 'span', trigger }) => {
       );
       
       if (iterations >= text.length) clearInterval(interval);
-      iterations += 1 / 3;
-    }, 30);
+      iterations += 1 / 2; // Faster completion
+    }, 40); // Slightly slower interval for better performance
     
     return () => clearInterval(interval);
-  }, [text, trigger]);
+  }, [text, trigger, isMobile]);
 
   return <Component className={className}>{displayText}</Component>;
 };
 
-const SpeedLines = ({ type }) => {
+const SpeedLines = ({ type, isMobile = false }) => {
   if (type !== 'slide-right' && type !== 'slide-left' && type !== 'warp-zoom') return null;
+  // Disable on mobile for performance
+  if (isMobile) return null;
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-50 mix-blend-overlay">
       <svg className="w-full h-full" preserveAspectRatio="none">
-        {/* Dynamic Speed Lines */}
-        {[...Array(10)].map((_, i) => (
+        {/* Dynamic Speed Lines - reduced count */}
+        {[...Array(5)].map((_, i) => (
           <rect
             key={i}
             x={Math.random() * 100 + "%"}
@@ -139,48 +161,57 @@ const SpeedLines = ({ type }) => {
   );
 };
 
-const ParticleBackground = ({ mouseX, mouseY, surge }) => {
+const ParticleBackground = ({ mouseX, mouseY, surge, isMobile = false }) => {
+  // Memoize particle positions to prevent re-renders
+  const particles = useMemo(() => 
+    [...Array(isMobile ? 4 : 8)].map(() => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      delay: Math.random() * 5
+    })), [isMobile]);
+
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
       {/* Deep Atmospheric Pulse */}
-      <div className={`absolute inset-0 transition-opacity duration-700 ${surge ? 'opacity-60' : 'opacity-30'} animate-pulse-slow bg-[radial-gradient(circle_at_50%_50%,_#1e293b_0%,_#020617_100%)]`} />
+      <div className={`absolute inset-0 ${surge ? 'opacity-60' : 'opacity-30'} bg-[radial-gradient(circle_at_50%_50%,_#1e293b_0%,_#020617_100%)]`} />
       
-      {/* Dynamic Orbs with Surge Effect */}
+      {/* Dynamic Orbs with Surge Effect - simplified transforms on mobile */}
       <div 
-        className={`absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full blur-[120px] transition-all duration-700 ease-out
-          ${surge ? 'opacity-60 scale-150 bg-cyan-500' : 'opacity-20 scale-100 bg-blue-600'}`}
-        style={{ transform: `translate(${mouseX * -20}px, ${mouseY * -20}px)` }}
+        className={`absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}
+          ${surge ? 'opacity-60 bg-cyan-500' : 'opacity-20 bg-blue-600'}`}
+        style={isMobile ? {} : { transform: `translate(${mouseX * -20}px, ${mouseY * -20}px)` }}
       />
       <div 
-        className={`absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[120px] transition-all duration-700 ease-out
-          ${surge ? 'opacity-60 scale-150 bg-purple-500' : 'opacity-20 scale-100 bg-purple-600'}`}
-        style={{ transform: `translate(${mouseX * 20}px, ${mouseY * 20}px)` }}
+        className={`absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full ${isMobile ? 'blur-[60px]' : 'blur-[120px]'}
+          ${surge ? 'opacity-60 bg-purple-500' : 'opacity-20 bg-purple-600'}`}
+        style={isMobile ? {} : { transform: `translate(${mouseX * 20}px, ${mouseY * 20}px)` }}
       />
 
-      {/* Digital Mesh Grid - Reacts to Surge */}
-      <div 
-        className={`absolute inset-0 transition-opacity duration-500 ${surge ? 'opacity-20' : 'opacity-[0.08]'}`}
-        style={{ 
-          backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-          transform: `perspective(1000px) rotateX(60deg) translateY(${mouseY * 0.5}px) scale(${surge ? 2.2 : 2})`,
-          transformOrigin: 'center top'
-        }}
-      />
+      {/* Digital Mesh Grid - Simplified on mobile */}
+      {!isMobile && (
+        <div 
+          className={`absolute inset-0 ${surge ? 'opacity-20' : 'opacity-[0.08]'}`}
+          style={{ 
+            backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+            transform: `perspective(1000px) rotateX(60deg) translateY(${mouseY * 0.5}px) scale(${surge ? 2.2 : 2})`,
+            transformOrigin: 'center top'
+          }}
+        />
+      )}
       
-      {/* Floating Particles - Reduced count for performance */}
-      {[...Array(10)].map((_, i) => (
+      {/* Floating Particles - Reduced count, no animation on mobile */}
+      {particles.map((p, i) => (
         <div
           key={i}
-          className={`absolute rounded-full bg-white animate-float ${surge ? 'opacity-60' : 'opacity-20'}`}
+          className={`absolute rounded-full bg-white ${isMobile ? '' : 'animate-float'} ${surge ? 'opacity-60' : 'opacity-20'}`}
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            animationDelay: `${Math.random() * 5}s`,
-            transition: 'opacity 0.5s',
-            willChange: 'transform'
+            left: `${p.left}%`,
+            top: `${p.top}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            animationDelay: isMobile ? undefined : `${p.delay}s`
           }}
         />
       ))}
@@ -189,8 +220,8 @@ const ParticleBackground = ({ mouseX, mouseY, surge }) => {
 };
 
 // --- NEON DRIFT HORIZON VISUALIZER ---
-// "Full Freedom" Mode: Perspective Grid + Jagged Horizon + Camera Shake
-const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
+// Mobile-optimized with reduced complexity
+const AudioVisualizer = ({ isPlaying, colorHex, className, isMobile = false }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -198,51 +229,60 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let animationId;
+    let lastTime = 0;
+    const targetFPS = isMobile ? 30 : 60; // Throttle FPS on mobile
+    const frameInterval = 1000 / targetFPS;
     
     // State for the moving grid
     let gridOffset = 0;
     
-    const render = () => {
-      const dpr = window.devicePixelRatio || 1;
-      // Make canvas internal resolution match screen for sharpness
+    // Cache canvas dimensions to avoid reflow
+    let w, h, cx, cy, dpr;
+    const updateDimensions = () => {
+      dpr = isMobile ? 1 : (window.devicePixelRatio || 1); // Lower resolution on mobile
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
+      w = canvas.width;
+      h = canvas.height;
+      cx = w / 2;
+      cy = h / 2;
+    };
+    updateDimensions();
+    
+    const render = (currentTime) => {
+      animationId = requestAnimationFrame(render);
       
-      const w = canvas.width;
-      const h = canvas.height;
-      const cx = w / 2;
-      const cy = h / 2;
+      // Throttle frame rate on mobile
+      if (currentTime - lastTime < frameInterval) return;
+      lastTime = currentTime;
 
       // Phonk Beat Simulation
-      const time = Date.now() / 1000;
+      const time = currentTime / 1000;
       const beatFreq = 8; 
       const rawWave = Math.sin(time * beatFreq);
-      const kick = Math.pow(Math.max(0, rawWave), 12); // Very sharp kick
+      const kick = Math.pow(Math.max(0, rawWave), 12);
       
       // Move grid faster on kick
       gridOffset += (1 + kick * 15) * dpr; 
       if (gridOffset > h / 2) gridOffset = 0;
 
-      // --- CAMERA SHAKE & GLITCH ---
+      // --- CAMERA SHAKE & GLITCH --- (disabled on mobile)
       ctx.save();
-      if (kick > 0.5) {
-         // Random shake on heavy beats
+      if (!isMobile && kick > 0.5) {
          const shakeX = (Math.random() - 0.5) * kick * 40 * dpr;
          const shakeY = (Math.random() - 0.5) * kick * 40 * dpr;
          ctx.translate(shakeX, shakeY);
       }
 
       // Clear Background
-      ctx.fillStyle = '#020617'; // Slate 950
+      ctx.fillStyle = '#020617';
       ctx.fillRect(0, 0, w, h);
 
       // --- DRAW FUNCTION ---
-      // We separate drawing into a function to allow for RGB splitting
-      const drawScene = (color, offset = 0) => {
+      const drawScene = (color) => {
         ctx.strokeStyle = color;
         ctx.lineWidth = 2 * dpr;
-        ctx.shadowBlur = 0;
 
         // 1. HORIZON LINE
         ctx.beginPath();
@@ -250,11 +290,9 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
         ctx.lineTo(w, cy);
         ctx.stroke();
 
-        // 2. PERSPECTIVE GRID (FLOOR)
-        // Vertical fanning lines
-        const numVLines = 10; // Reduced from 20
+        // 2. PERSPECTIVE GRID (FLOOR) - Reduced on mobile
+        const numVLines = isMobile ? 6 : 10;
         for(let i = -numVLines; i <= numVLines; i++) {
-            // X position at bottom of screen spread out, converging to center
             const spread = w * 2; 
             const xBottom = cx + (i * (spread / numVLines));
             
@@ -265,105 +303,88 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
             ctx.stroke();
         }
 
-        // Horizontal moving lines
-        const numHLines = 6; // Reduced from 10
+        // Horizontal moving lines - Reduced on mobile
+        const numHLines = isMobile ? 4 : 6;
         for(let i = 0; i < numHLines; i++) {
-            // Exponential spacing for perspective
-            let yPos = cy + ((i * (h/2)) / numHLines) + (gridOffset % (h/2 / numHLines));
-            // Correct math to make it look like it's coming towards you is complex, 
-            // linear approximation with modulo is "retro" enough
-            
-            // Better perspective math:
             const progress = (gridOffset + (i * 100 * dpr)) % (h/2);
-            const perspectiveY = cy + (progress * progress) / (h/3); // Exponential acceleration
+            const perspectiveY = cy + (progress * progress) / (h/3);
             
             if(perspectiveY > h) continue;
 
             ctx.beginPath();
             ctx.moveTo(0, perspectiveY);
             ctx.lineTo(w, perspectiveY);
-            ctx.globalAlpha = 0.2 + (perspectiveY - cy) / (h/2); // Fade in as it gets closer
+            ctx.globalAlpha = 0.2 + (perspectiveY - cy) / (h/2);
             ctx.stroke();
         }
         ctx.globalAlpha = 1;
 
-        // 3. JAGGED AUDIO SKYLINE (The "Visualizer" part)
-        // We mirror it left/right from center
+        // 3. JAGGED AUDIO SKYLINE - Reduced bars on mobile
         ctx.beginPath();
         ctx.moveTo(0, cy);
         
-        const bars = 30; // Reduced from 50
+        const bars = isMobile ? 15 : 30;
         const step = w / bars;
 
         for(let i = 0; i <= bars; i++) {
             const x = i * step;
-            
-            // Calculate distance from center (normalized 0 to 1)
             const dist = Math.abs(x - cx) / (w/2);
-            
-            // Frequency noise
-            // High in middle, low at edges
             const noise = Math.random();
             const wave = Math.sin(i * 0.5 + time * 10);
             
-            // Height calculation
             let barHeight = (noise * 50 * kick) + (wave * 20) + 5;
-            // Make center huge
             barHeight *= (1 - dist); 
             
-            if (!isPlaying) barHeight = 2; // Flatline if paused
+            if (!isPlaying) barHeight = 2;
 
             ctx.lineTo(x, cy - barHeight * dpr);
         }
         
         ctx.lineTo(w, cy);
         
-        // Fill the mountains
         ctx.fillStyle = color;
         ctx.globalAlpha = 0.2;
         ctx.fill();
         
-        // Stroke the top edge
         ctx.globalAlpha = 1;
-        // Removed shadowBlur for performance
         ctx.stroke();
       };
 
-      // --- COMPOSITE RENDER (RGB SPLIT) ---
-      if (kick > 0.6) {
-          // Glitch Mode: Draw Red and Blue channels offset
+      // --- COMPOSITE RENDER (RGB SPLIT) --- Disabled on mobile
+      if (!isMobile && kick > 0.6) {
           ctx.globalCompositeOperation = 'screen';
           
-          // Red Channel (Left)
           ctx.save();
           ctx.translate(-10 * kick * dpr, 0);
           drawScene('#ff0000');
           ctx.restore();
 
-          // Blue Channel (Right)
           ctx.save();
           ctx.translate(10 * kick * dpr, 0);
           drawScene('#00ffff');
           ctx.restore();
 
-          // Center (White/Main Color)
           drawScene(colorHex);
           
           ctx.globalCompositeOperation = 'source-over';
       } else {
-          // Normal Mode
           drawScene(colorHex);
       }
 
-      ctx.restore(); // Restore from camera shake
-
-      animationId = requestAnimationFrame(render);
+      ctx.restore();
     };
 
-    render();
+    render(0);
 
-    return () => cancelAnimationFrame(animationId);
-  }, [isPlaying, colorHex]);
+    // Handle resize
+    const handleResize = () => updateDimensions();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isPlaying, colorHex, isMobile]);
 
   return (
     <canvas 
@@ -377,7 +398,7 @@ const AudioVisualizer = ({ isPlaying, colorHex, className }) => {
   );
 };
 
-const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPlaying }) => {
+const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPlaying, isMobile = false }) => {
   const [flipped, setFlipped] = useState(false);
   const isActive = index === activeIndex;
   const isPast = index < activeIndex;
@@ -390,6 +411,17 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
   }, [isActive]);
 
   const getDiscardTransform = (type) => {
+    // Simplified transforms on mobile
+    if (isMobile) {
+      switch(type) {
+        case 'float-up': return `translateY(-150vh)`;
+        case 'slide-right': return `translateX(150vw)`;
+        case 'warp-zoom': return `scale(3) translateZ(500px)`; 
+        case 'slide-left': return `translateX(-150vw)`;
+        case 'drop-down': return `translateY(150vh)`;
+        default: return `translateY(-200%)`;
+      }
+    }
     switch(type) {
       case 'float-up': return `translateY(-150vh) rotate(-10deg) scale(0.9)`;
       case 'slide-right': return `translateX(150vw) rotate(45deg) scale(1.1)`;
@@ -404,16 +436,18 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
     zIndex: total - index,
     transform: isPast 
       ? getDiscardTransform(item.animation)
-      : `
-        translateY(${offset * 12}px) 
-        scale(${1 - offset * 0.05}) 
-        translateZ(${-offset * 50}px)
-        ${isActive ? `rotateX(${(mouseY * 0.05)}deg) rotateY(${(mouseX * 0.05)}deg)` : ''}
-      `,
+      : isMobile 
+        ? `translateY(${offset * 12}px) scale(${1 - offset * 0.05})`
+        : `
+          translateY(${offset * 12}px) 
+          scale(${1 - offset * 0.05}) 
+          translateZ(${-offset * 50}px)
+          ${isActive ? `rotateX(${(mouseY * 0.05)}deg) rotateY(${(mouseX * 0.05)}deg)` : ''}
+        `,
     opacity: isActive ? 1 : 0,
     filter: 'none',
-    transition: `all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)`,
-    willChange: 'transform, opacity' // Optimization
+    transition: isMobile ? 'all 0.5s ease-out' : 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    willChange: 'transform, opacity'
   };
 
   // Holographic Foil Gradient
@@ -466,10 +500,10 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
           {/* Overlays removed for cleaner look */}
 
           {/* Visual Effects Layer */}
-          {isPast && (
+          {isPast && !isMobile && (
             <>
                {item.animation === 'warp-zoom' && <div className="absolute inset-0 bg-white animate-flash z-50 mix-blend-overlay" />}
-               <SpeedLines type={item.animation} />
+               <SpeedLines type={item.animation} isMobile={isMobile} />
             </>
           )}
 
@@ -484,7 +518,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
                 {item.type === 'Innovation' && <Cpu className="text-white w-5 h-5 md:w-6 md:h-6" />}
               </div>
               <div className="text-[10px] md:text-xs font-mono text-white/60 tracking-widest uppercase border border-white/10 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md">
-                <GlitchText text={`0${index + 1} // 0${total}`} trigger={isActive} />
+                <GlitchText text={`0${index + 1} // 0${total}`} trigger={isActive} isMobile={isMobile} />
               </div>
             </div>
 
@@ -498,7 +532,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
               )}
               <div className="text-center space-y-2">
                 <h2 className={`${item.image ? 'text-3xl md:text-4xl' : 'text-4xl md:text-5xl'} font-black text-white leading-tight tracking-tight uppercase drop-shadow-lg`}> 
-                  <GlitchText text={item.title} trigger={isActive} />
+                  <GlitchText text={item.title} trigger={isActive} isMobile={isMobile} />
                 </h2>
                 <p className={`text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${item.color}`}>
                   {item.subtitle}
@@ -547,7 +581,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
            <div className="relative z-10 flex-1 flex flex-col justify-center space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <h3 className="text-xl md:text-2xl font-black text-white text-center uppercase tracking-widest">
-                    <GlitchText text="System Data" trigger={flipped} />
+                    <GlitchText text="System Data" trigger={flipped} isMobile={isMobile} />
                 </h3>
                 <div className={`w-full h-[1px] bg-gradient-to-r from-transparent via-[${item.hex}] to-transparent`} />
               </div>
@@ -610,31 +644,34 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
   );
 };
 
-const Header = () => (
+const Header = ({ isMobile = false }) => (
   <header className="fixed top-0 left-0 w-full p-4 md:p-8 flex justify-between items-center z-50 pointer-events-none mix-blend-difference">
     <div className="flex items-center gap-2 pointer-events-auto">
-      <div className="w-8 h-8 md:w-10 md:h-10 rounded bg-white flex items-center justify-center animate-pulse">
+      <div className={`w-8 h-8 md:w-10 md:h-10 rounded bg-white flex items-center justify-center ${isMobile ? '' : 'animate-pulse'}`}>
         <Zap className="w-5 h-5 md:w-6 md:h-6 text-black fill-current" />
       </div>
       <span className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic">
-        <GlitchText text="VIJAY" />
+        {isMobile ? 'VIJAY' : <GlitchText text="VIJAY" isMobile={isMobile} />}
         <span className="text-white/50 text-lg md:text-xl not-italic">.DEV</span>
       </span>
     </div>
     <nav className="hidden md:flex gap-8 pointer-events-auto">
       {['Work', 'Skills', 'Contact'].map((item) => (
         <a key={item} href="#" className="text-sm font-black text-white/70 hover:text-white uppercase tracking-widest hover:underline decoration-2 underline-offset-4 transition-all">
-          <GlitchText text={item} />
+          <GlitchText text={item} isMobile={isMobile} />
         </a>
       ))}
     </nav>
   </header>
 );
 
-const Progress = ({ total, current }) => (
+const Progress = ({ total, current, isMobile = false }) => (
   <div className="fixed bottom-4 left-4 md:bottom-8 md:left-8 flex flex-col gap-2 z-50 mix-blend-difference">
     <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-widest">
-        <GlitchText text={`System Load: ${Math.round(((current + 1) / total) * 100)}%`} />
+        {isMobile 
+          ? `System Load: ${Math.round(((current + 1) / total) * 100)}%`
+          : <GlitchText text={`System Load: ${Math.round(((current + 1) / total) * 100)}%`} isMobile={isMobile} />
+        }
     </span>
     <div className="flex gap-1">
       {[...Array(total)].map((_, i) => (
@@ -680,10 +717,14 @@ const App = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
   const containerRef = useRef(null);
+  const isMobile = useIsMobile();
 
   const ticking = useRef(false);
 
   const handleMouseMove = useCallback((e) => {
+    // Skip mouse tracking on mobile for performance
+    if (isMobile) return;
+    
     if (!ticking.current) {
       requestAnimationFrame(() => {
         if (containerRef.current) {
@@ -696,7 +737,7 @@ const App = () => {
       });
       ticking.current = true;
     }
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     if (started) {
@@ -738,6 +779,17 @@ const App = () => {
       className="relative w-screen h-[100dvh] overflow-hidden bg-slate-950 font-sans selection:bg-cyan-500/30"
     >
       <style>{`
+        /* Mobile-first performance optimizations */
+        @media (max-width: 768px) {
+          * {
+            -webkit-tap-highlight-color: transparent;
+          }
+          .backdrop-blur-md {
+            backdrop-filter: none;
+            background-color: rgba(0, 0, 0, 0.5);
+          }
+        }
+        
         .perspective-1000 { perspective: 1000px; }
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
@@ -777,8 +829,8 @@ const App = () => {
         .animate-pulse-beat { animation: pulse-beat 0.6s ease-in-out infinite; }
       `}</style>
 
-      <ParticleBackground mouseX={mousePos.x} mouseY={mousePos.y} surge={surge} />
-      <Header />
+      <ParticleBackground mouseX={mousePos.x} mouseY={mousePos.y} surge={surge} isMobile={isMobile} />
+      <Header isMobile={isMobile} />
 
       <main className="relative w-full h-full flex items-center justify-center z-10 perspective-1000">
         
@@ -788,6 +840,7 @@ const App = () => {
               isPlaying={isMusicPlaying && started} 
               colorHex={activeItem ? activeItem.hex : '#ffffff'}
               className="w-full h-full opacity-80 mix-blend-screen"
+              isMobile={isMobile}
             />
         </div>
 
@@ -807,13 +860,14 @@ const App = () => {
                 mouseX={mousePos.x}
                 mouseY={mousePos.y}
                 isPlaying={isMusicPlaying && started}
+                isMobile={isMobile}
               />
             </div>
           ))}
         </div>
       </main>
 
-      <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} />
+      <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} />
 
       {/* Hidden Youtube Player for Background Music - PHONK PLAYLIST */}
       {isMusicPlaying && started && (
