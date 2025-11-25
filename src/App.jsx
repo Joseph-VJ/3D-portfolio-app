@@ -429,8 +429,8 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
     if (!isActive) setFlipped(false);
     if (isActive) {
       setEnterAnim(true);
-      const timer = setTimeout(() => setEnterAnim(false), 600);
-      return () => clearTimeout(timer);
+      const animTimer = setTimeout(() => setEnterAnim(false), 500);
+      return () => clearTimeout(animTimer);
     }
   }, [isActive, activeIndex]);
 
@@ -466,78 +466,48 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
     ? `translateX(${swipeOffset.x}px) rotate(${swipeOffset.x * 0.02}deg)`
     : '';
 
-  // Multi-layered 3D card positioning - like stacked vinyl records
+  // Card positioning - only active card visible, no stacked cards behind
   const getCardTransform = () => {
     if (isPast) {
       return getDiscardTransform(item.animation);
     }
     
-    if (isMobile) {
-      // Mobile: Dramatic stacked cards with visible depth - like the reference image
-      // Each card is offset down-right with rotation for that "fanned stack" look
-      const stackOffsetY = offset * 25;  // Vertical offset between cards
-      const stackOffsetX = offset * 8;   // Slight horizontal offset
-      const stackScale = 1 - (offset * 0.06);  // Scale down background cards more
-      const stackRotateZ = offset * -3;  // Slight rotation for fanned effect
-      const stackRotateX = offset * 4;   // Tilt back for 3D depth
-      
-      return `
-        translateY(${stackOffsetY}px) 
-        translateX(${stackOffsetX}px)
-        translateZ(${-offset * 80}px)
-        scale(${stackScale}) 
-        rotateZ(${stackRotateZ}deg)
-        rotateX(${stackRotateX}deg)
-        ${swipeTransform}
-      `;
+    // Only show the active card - hide cards behind
+    if (!isActive) {
+      return `translateZ(-100px) scale(0.9)`;
     }
     
-    // Desktop: Full 3D with mouse interaction
-    const stackOffsetY = offset * 20;
-    const stackOffsetX = offset * 10;
-    const stackScale = 1 - (offset * 0.05);
-    const stackRotateZ = offset * -2;
-    const stackRotateX = offset * 3;
+    if (isMobile) {
+      return swipeTransform || 'translateZ(0)';
+    }
     
+    // Desktop: Active card with mouse interaction
+    return `rotateX(${(mouseY * 0.02)}deg) rotateY(${(mouseX * 0.02)}deg)`;
+  };
+
+  // Dynamic shadow for active card only
+  const getCardShadow = () => {
+    if (!isActive) return 'none';
     return `
-      translateY(${stackOffsetY}px) 
-      translateX(${stackOffsetX}px)
-      translateZ(${-offset * 100}px)
-      scale(${stackScale}) 
-      rotateZ(${stackRotateZ}deg)
-      rotateX(${stackRotateX}deg)
-      ${isActive ? `rotateX(${(mouseY * 0.02)}deg) rotateY(${(mouseX * 0.02)}deg)` : ''}
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 12px 24px -8px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.1)
     `;
   };
 
-  // Dynamic shadow based on card depth - more dramatic
-  const getCardShadow = () => {
-    if (isPast) return 'none';
-    if (isActive) {
-      return `
-        0 25px 50px -12px rgba(0, 0, 0, 0.5),
-        0 12px 24px -8px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1)
-      `;
-    }
-    // Background cards have softer shadows
-    const shadowOpacity = Math.max(0.1, 0.3 - (offset * 0.1));
-    return `0 ${10 + offset * 5}px ${20 + offset * 10}px -5px rgba(0, 0, 0, ${shadowOpacity})`;
-  };
-
   const style = {
-    zIndex: total - index,
+    zIndex: isActive ? 10 : 1,
     transform: getCardTransform(),
-    opacity: isPast ? 0 : isActive ? 1 : Math.max(0.5, 0.9 - (offset * 0.15)),
-    // Simplified filter for mobile - no blur which is GPU intensive
-    filter: isMobile ? 'none' : (isPast ? 'blur(10px)' : isActive ? 'none' : `blur(${offset * 0.3}px)`),
-    // Simpler shadow for mobile
+    // Only active card is visible - hide all background cards
+    opacity: isActive ? 1 : 0,
+    filter: 'none',
+    // Shadow only on active card
     boxShadow: isMobile ? '0 10px 30px -10px rgba(0,0,0,0.3)' : getCardShadow(),
-    // Faster, simpler transition for mobile
+    // Smooth transition
     transition: isMobile 
       ? 'transform 0.4s ease-out, opacity 0.3s ease' 
-      : 'all 0.7s cubic-bezier(0.23, 1, 0.32, 1)',
-    willChange: isMobile ? 'transform' : 'transform, opacity, filter',
+      : 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)',
+    willChange: 'transform, opacity',
     transformStyle: 'preserve-3d'
   };
 
@@ -588,9 +558,12 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
     0 4px 8px rgba(0,0,0,0.05)
   `;
 
+  // Entrance animation class - subtle pop-in effect
+  const entranceClass = isActive && enterAnim ? 'card-entrance-pop' : '';
+
   return (
     <div 
-      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] ${isActive ? 'cursor-pointer' : 'pointer-events-none'} ${entranceClass}`}
       style={{
         ...style,
         perspective: '1500px',
