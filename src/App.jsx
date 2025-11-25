@@ -617,12 +617,27 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
       backgroundSize: '100% 3px, 3px 100%'
   };
 
+  const handleCardClick = (e) => {
+    // Don't flip if clicking on a button or link
+    if (e.target.closest('button') || e.target.closest('a')) {
+      return;
+    }
+    if (isActive) {
+      setFlipped(!flipped);
+    }
+  };
+
   return (
     <div 
       className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] perspective-1000 ${isActive ? 'cursor-pointer' : 'pointer-events-none'}`}
       style={style}
-      onClick={() => isActive && setFlipped(!flipped)}
-      onTouchStart={handleTouchStart}
+      onClick={handleCardClick}
+      onTouchStart={(e) => {
+        // Don't trigger feedback if touching a button
+        if (!e.target.closest('button') && !e.target.closest('a')) {
+          handleTouchStart();
+        }
+      }}
     >
       {/* Touch feedback ring */}
       {touchFeedback && (
@@ -784,9 +799,18 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
            <button 
              onClick={(e) => {
                e.stopPropagation();
+               e.preventDefault();
                onNext();
              }}
-             className={`relative z-10 w-full py-3 md:py-4 rounded bg-gradient-to-r ${item.color} text-white font-black text-base md:text-lg tracking-widest shadow-lg shadow-${item.accent}-500/30 hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-2 group mt-4 md:mt-6 uppercase`}
+             onTouchEnd={(e) => {
+               e.stopPropagation();
+               e.preventDefault();
+               onNext();
+             }}
+             onTouchStart={(e) => {
+               e.stopPropagation();
+             }}
+             className={`relative z-20 w-full py-3 md:py-4 rounded bg-gradient-to-r ${item.color} text-white font-black text-base md:text-lg tracking-widest shadow-lg shadow-${item.accent}-500/30 hover:scale-[1.02] active:scale-95 transition-transform flex items-center justify-center gap-2 group mt-4 md:mt-6 uppercase touch-manipulation`}
            >
              <span>{index === total - 1 ? 'Reboot System' : 'Next File'}</span>
              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
