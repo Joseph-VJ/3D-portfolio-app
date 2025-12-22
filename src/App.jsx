@@ -712,8 +712,10 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
           style={{ backfaceVisibility: 'hidden' }}
         >
            <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={scanlineStyle} />
-           {/* Decorative bg element */}
-           <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${item.color} animate-pulse`} />
+           {/* Scroll hint text */}
+           <div className="absolute top-3 left-1/2 transform -translate-x-1/2 text-xs md:text-sm text-white/60 font-medium tracking-wider uppercase">
+             Scroll to see next
+           </div>
            
            <div className="relative z-10 flex-1 flex flex-col justify-center space-y-4 md:space-y-6">
               <div className="space-y-2">
