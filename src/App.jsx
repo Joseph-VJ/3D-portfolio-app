@@ -839,24 +839,31 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false); // Start false, user must click
   const [ripples, setRipples] = useState([]);
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
-  const videoRef = useRef(null);
+  const audioRef = useRef(null);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
 
-  // Set audio volume on mount and when music playing state changes
+  // Handle audio play/pause with proper browser autoplay handling
   useEffect(() => {
-    if (videoRef.current) {
-      try {
-        // HTML5 audio volume control (0-1 range, where 0.55 = 55% volume)
-        videoRef.current.volume = 0.55;
-      } catch (e) {
-        console.log('Error setting audio volume:', e);
+    if (audioRef.current) {
+      audioRef.current.volume = 0.55; // 55% volume
+      
+      if (isMusicPlaying) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log('Autoplay prevented by browser:', error);
+            setIsMusicPlaying(false);
+          });
+        }
+      } else {
+        audioRef.current.pause();
       }
     }
   }, [isMusicPlaying]);
@@ -1187,15 +1194,13 @@ const App = () => {
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
       {/* Background Music Player - Mashuq Haque Phonk */}
-      {isMusicPlaying && (
-        <audio
-          ref={videoRef}
-          autoPlay
-          loop
-          style={{ display: 'none' }}
-          src="/phonk.mp3"
-        />
-      )}
+      <audio
+        ref={audioRef}
+        loop
+        preload="auto"
+        style={{ display: 'none' }}
+        src="/phonk.mp3"
+      />
 
       {/* Navigation Controls */}
       <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
