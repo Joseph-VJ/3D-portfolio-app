@@ -2,7 +2,7 @@
 
 ## Overview
 
-This documentation provides a comprehensive explanation of the 3D Portfolio Application codebase. It is organized into seven detailed markdown documents, each focusing on different aspects of the application.
+This documentation provides a comprehensive explanation of the 3D Portfolio Application codebase. It is organized into nine detailed markdown documents, each focusing on different aspects of the application.
 
 ---
 
@@ -135,17 +135,61 @@ Covers:
 
 ---
 
+### [08_DEPLOYMENT_UPDATES.md](08_DEPLOYMENT_UPDATES.md) ⭐ **NEW - December 2025**
+**Latest updates, changes, and optimizations made to the deployed application.**
+
+Covers:
+- Procfile configuration fixes for Heroku deployment
+- UI/UX improvements (removed clutter, optimized buttons)
+- Deck stacking effect implementation
+- Performance optimization timeline
+- Card state management improvements
+- Mobile responsive design updates
+- Comprehensive deployment checklist
+- Current deployment status and version info
+
+---
+
+### [09_ISSUES_AND_SOLUTIONS.md](09_ISSUES_AND_SOLUTIONS.md) ⭐ **NEW - December 2025**
+**Complete troubleshooting guide documenting all issues encountered and how they were resolved.**
+
+Covers 9 major issues:
+1. Procfile Heroku build configuration error
+2. Card flip state not resetting on reboot
+3. Image scale effect causing distraction
+4. Cluttered mobile UI (multiple overlapping elements)
+5. Oversized button sizes for mobile
+6. Redundant "Next File" buttons
+7. Confusing "Reboot System" text
+8. Card transition lag on older devices (with 3 optimization iterations)
+9. Deck stacking causing text overlap
+
+Each issue includes:
+- What went wrong
+- Why it happened
+- Code before/after
+- Final solution
+- Lessons learned
+
+---
+
 ## How to Use This Documentation
 
 ### For Understanding the Project as a Whole
 1. Start with **01_PROJECT_OVERVIEW.md** for context
 2. Read **02_ARCHITECTURE_AND_FLOW.md** to understand organization
 3. Browse **07_USER_INTERACTION_GUIDE.md** to see how users experience it
+4. Check **08_DEPLOYMENT_UPDATES.md** for latest changes
 
 ### For Component Development
 1. Read **02_ARCHITECTURE_AND_FLOW.md** for component hierarchy
 2. Go to **03_COMPONENT_BREAKDOWN.md** for detailed component information
 3. Check **05_STYLING_AND_EFFECTS.md** for styling approach
+
+### For Debugging & Problem Solving
+1. Read **09_ISSUES_AND_SOLUTIONS.md** for known issues
+2. Check **08_DEPLOYMENT_UPDATES.md** for recent optimizations
+3. Reference **06_BUILD_AND_DEPLOYMENT.md** for deployment troubleshooting
 
 ### For Styling and Visual Effects
 1. Reference **05_STYLING_AND_EFFECTS.md** for all styling information
