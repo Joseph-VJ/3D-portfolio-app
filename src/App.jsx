@@ -658,7 +658,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
             {/* Centering container for image and text */}
             <div className={`flex flex-col items-center justify-center flex-1 ${item.image ? 'gap-3 md:gap-4' : 'gap-6 md:gap-8'}`}> 
               {item.image && (
-                 <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl transition-transform duration-300 ${isActive && isPlaying ? 'scale-105' : 'scale-100'}`}> 
+                 <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl"> 
                     <div className={`absolute inset-0 border-2 rounded-full z-10 ${isActive && isPlaying ? 'border-white opacity-100' : 'border-white/20 opacity-50'}`} />
                     <img src={item.image} alt="Vijay Joseph" className="w-full h-full object-cover" /> 
                  </div>
@@ -1005,6 +1005,7 @@ const App = () => {
        setLoading(true);
        setTimeout(() => {
            setActiveIndex(0);
+           setCardFlipped({}); // Reset all card flips when rebooting
            setTimeout(() => {
                setLoading(false);
            }, 500);
