@@ -508,9 +508,9 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
   const style = {
     zIndex: isActive ? 10 : (isPast ? 1 : 10 - (index - activeIndex)),
     transform: getCardTransform(),
-    // Show stacked cards with fade effect
-    opacity: isPast ? 0 : (isActive ? 1 : Math.max(0.5, 1 - (index - activeIndex) * 0.1)),
-    filter: !isActive && !isPast ? 'brightness(0.85)' : 'none',
+    // Hide stacked cards to prevent overlap - only show active card
+    opacity: isPast ? 0 : (isActive ? 1 : 0),
+    filter: 'none',
     // Softer shadows on stacked cards
     boxShadow: isPast ? 'none' : (isActive 
       ? (isMobile ? '0 20px 60px -15px rgba(0,0,0,0.4)' : getCardShadow())
@@ -539,12 +539,11 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
   return (
     <div 
-      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d overflow-hidden ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')}`}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')}`}
       style={{
         ...style,
         perspective: '1500px',
-        perspectiveOrigin: '50% 30%',
-        isolation: 'isolate'
+        perspectiveOrigin: '50% 30%'
       }}
       onClick={handleCardClick}
       onTouchStart={(e) => {
@@ -609,17 +608,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
         />
       )}
 
-      {/* Simple background for stacked cards - shows when content is hidden */}
-      {!isActive && !isPast && (
-        <div 
-          className="absolute inset-0 rounded-3xl bg-slate-900"
-          style={{
-            boxShadow: '0 8px 24px -8px rgba(0,0,0,0.3)'
-          }}
-        />
-      )}
-
-      <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`} style={{ visibility: isActive ? 'visible' : 'hidden' }}>
+      <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`}>
         
         {/* FRONT FACE */}
         <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden shadow-2xl group transition-all duration-100
