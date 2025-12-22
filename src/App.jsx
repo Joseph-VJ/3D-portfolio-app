@@ -760,25 +760,6 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
               )}
            </div>
 
-           <button 
-             onClick={(e) => {
-               e.stopPropagation();
-               e.preventDefault();
-               onNext();
-             }}
-             onTouchEnd={(e) => {
-               e.stopPropagation();
-               e.preventDefault();
-               onNext();
-             }}
-             onTouchStart={(e) => {
-               e.stopPropagation();
-             }}
-             className={`relative z-20 w-full py-4 md:py-5 rounded-xl bg-gradient-to-r ${item.color} text-white font-black text-lg md:text-xl tracking-widest shadow-2xl hover:shadow-3xl hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4 md:mt-6 uppercase touch-manipulation animate-pulse`}
-           >
-             <span>{index === total - 1 ? '\u27f3 Reboot System' : '\u27a1 Next File'}</span>
-             <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform animate-bounce" />
-           </button>
         </div>
 
       </div>
