@@ -1185,21 +1185,21 @@ const App = () => {
         {isMobile && activeIndex > 0 && (
           <button 
             onClick={handlePrev}
-            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white active:scale-90 transition-all duration-300"
+            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white active:scale-90 transition-all duration-300"
           >
-            <ChevronLeft className="w-5 h-5 text-white group-hover:text-black transition-colors" />
+            <ChevronLeft className="w-4 h-4 text-white group-hover:text-black transition-colors" />
           </button>
         )}
         
         <button 
           onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
           title={isMusicPlaying ? "Pause Music" : "Play Music"}
         >
           {isMusicPlaying ? (
-            <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
+            <Volume2 className="w-4 h-4 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
           ) : (
-            <VolumeX className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
+            <VolumeX className="w-4 h-4 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
           )}
         </button>
 
@@ -1209,9 +1209,9 @@ const App = () => {
         </div>
         <button 
           onClick={handleNext}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
         >
-          <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
+          <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
         </button>
       </div>
     </div>
