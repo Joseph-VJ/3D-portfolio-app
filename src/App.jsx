@@ -839,51 +839,14 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(true); // Start playing automatically
   const [ripples, setRipples] = useState([]);
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
-  const hasInteracted = useRef(false);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
-
-  // Start music on ANY interaction - as early as possible
-  useEffect(() => {
-    const startMusic = () => {
-      if (!hasInteracted.current) {
-        hasInteracted.current = true;
-        setIsMusicPlaying(true);
-        
-        // Remove all listeners after first interaction
-        removeListeners();
-      }
-    };
-
-    const removeListeners = () => {
-      document.removeEventListener('mouseover', startMusic);
-      document.removeEventListener('mouseenter', startMusic);
-      document.removeEventListener('mousemove', startMusic);
-      document.removeEventListener('click', startMusic);
-      document.removeEventListener('touchstart', startMusic);
-      document.removeEventListener('keydown', startMusic);
-      document.removeEventListener('scroll', startMusic);
-      document.removeEventListener('pointerover', startMusic);
-    };
-
-    // Listen for the earliest possible interactions
-    document.addEventListener('mouseover', startMusic);
-    document.addEventListener('mouseenter', startMusic);
-    document.addEventListener('mousemove', startMusic);
-    document.addEventListener('click', startMusic);
-    document.addEventListener('touchstart', startMusic);
-    document.addEventListener('keydown', startMusic);
-    document.addEventListener('scroll', startMusic);
-    document.addEventListener('pointerover', startMusic);
-
-    return removeListeners;
-  }, []);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
@@ -1210,19 +1173,20 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Background Music Player - YouTube */}
-      {isMusicPlaying && (
-        <div className="fixed opacity-0 pointer-events-none" style={{ width: 0, height: 0, overflow: 'hidden' }}>
+      {/* Background Music Player - YouTube (always rendered, autoplay) */}
+      <div className="fixed opacity-0 pointer-events-none" style={{ width: 0, height: 0, overflow: 'hidden' }}>
+        {isMusicPlaying && (
           <iframe
             width="1"
             height="1"
-            src="https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE&controls=0&showinfo=0&mute=0"
+            src="https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE&controls=0&showinfo=0&rel=0&enablejsapi=1"
             title="Background Music"
-            allow="autoplay; encrypted-media"
+            allow="autoplay; encrypted-media; accelerometer; gyroscope"
+            frameBorder="0"
             style={{ opacity: 0 }}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Navigation Controls */}
       <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
