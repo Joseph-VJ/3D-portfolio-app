@@ -1,0 +1,445 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Enhanced Touch Interactions & Animations */
+
+/* Smooth scroll behavior with scroll-snap support */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.scroll-smooth::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+.scroll-smooth {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scroll snap container */
+.scroll-snap-container {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll snap items */
+.scroll-snap-item {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+/* 3D Card Container */
+.card-3d-container {
+  transform-style: preserve-3d;
+  perspective: 1200px;
+}
+
+/* Multi-layer 3D Card */
+.card-3d {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Card Stack Effect */
+@keyframes card-stack-in {
+  0% {
+    opacity: 0;
+    transform: translateY(100px) rotateX(30deg) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) rotateX(-5deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+}
+
+@keyframes card-slide-out-left {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-120%) rotateY(-30deg) scale(0.8);
+  }
+}
+
+@keyframes card-slide-out-right {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) rotateY(30deg) scale(0.8);
+  }
+}
+
+@keyframes card-float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120vh) rotateX(-25deg) scale(0.7);
+  }
+}
+
+@keyframes card-warp-zoom {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateZ(0) rotateZ(0);
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3) translateZ(500px) rotateZ(20deg);
+  }
+}
+
+.card-exit-left {
+  animation: card-slide-out-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.card-exit-right {
+  animation: card-slide-out-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.card-exit-up {
+  animation: card-float-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.card-exit-zoom {
+  animation: card-warp-zoom 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Card Entrance Pop - subtle scale and glow */
+@keyframes card-pop-in {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 rgba(6, 182, 212, 0);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.4), 0 0 80px rgba(139, 92, 246, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(6, 182, 212, 0);
+  }
+}
+
+.card-entrance-pop {
+  animation: card-pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Disable text selection on interactive elements */
+.touch-interactive {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Ripple effect animations */
+@keyframes ripple-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  animation: ripple-expand 0.6s ease-out forwards;
+}
+
+/* Card entrance animations */
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: perspective(1000px) rotateX(30deg) translateY(100px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1000px) rotateX(0) translateY(0) scale(1);
+  }
+}
+
+.card-animate-in {
+  animation: card-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Swipe feedback */
+@keyframes swipe-hint {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.swipe-hint {
+  animation: swipe-hint 2s ease-in-out infinite;
+}
+
+/* Floating animation for particles */
+@keyframes float-up {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.float-animation {
+  animation: float-up 4s ease-in-out infinite;
+}
+
+/* Glow pulse effect */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(139, 92, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.5), 0 0 80px rgba(139, 92, 246, 0.3);
+  }
+}
+
+.glow-effect {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Scroll reveal animations */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scroll-reveal-up {
+  animation: reveal-up 0.6s ease-out forwards;
+}
+
+.scroll-reveal-left {
+  animation: reveal-left 0.6s ease-out forwards;
+}
+
+.scroll-reveal-right {
+  animation: reveal-right 0.6s ease-out forwards;
+}
+
+.scroll-reveal-scale {
+  animation: reveal-scale 0.5s ease-out forwards;
+}
+
+/* Typewriter effect */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 2s steps(30) forwards;
+}
+
+/* Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: reveal-up 0.5s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Magnetic button effect placeholder */
+.magnetic-btn {
+  transition: transform 0.2s ease-out;
+}
+
+/* Progress dot active state */
+.dot-active {
+  box-shadow: 0 0 20px currentColor;
+}
+
+/* Touch feedback */
+@keyframes touch-feedback {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.touch-press {
+  animation: touch-feedback 0.2s ease-out;
+}
+
+/* Audio visualizer bars */
+@keyframes bar-dance {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+/* Shimmer effect for loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Simplify animations on mobile for better performance */
+  .card-exit-left,
+  .card-exit-right,
+  .card-exit-up,
+  .card-exit-zoom {
+    animation-duration: 0.3s !important;
+  }
+  
+  /* Disable glow effects on mobile - they are GPU intensive */
+  .glow-effect {
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Reduce float animation complexity */
+  .float-animation {
+    animation-duration: 6s !important;
+  }
+  
+  /* Simpler scroll reveals on mobile */
+  .scroll-reveal-up,
+  .scroll-reveal-left,
+  .scroll-reveal-right,
+  .scroll-reveal-scale {
+    animation-duration: 0.3s !important;
+  }
+  
+  /* Reduce motion for better performance on mobile if preferred */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Hardware acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Prevent overscroll on body */
+body {
+  overscroll-behavior: none;
+}
+
+/* Smooth card transitions */
+.card-transition-smooth {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.5s ease-out,
+              box-shadow 0.4s ease;
+}
+
+.card-transition-fast {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease-out;
+}
+
+/* Enhanced spring easing for natural feel */
+.spring-bounce {
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.spring-soft {
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #06b6d4, #8b5cf6);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #22d3ee, #a78bfa);
+}
