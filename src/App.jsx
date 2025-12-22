@@ -612,7 +612,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
       {/* Simple background for stacked cards - shows when content is hidden */}
       {!isActive && !isPast && (
         <div 
-          className="absolute inset-0 rounded-3xl bg-slate-900 border border-white/10"
+          className="absolute inset-0 rounded-3xl bg-slate-900"
           style={{
             boxShadow: '0 8px 24px -8px rgba(0,0,0,0.3)'
           }}
