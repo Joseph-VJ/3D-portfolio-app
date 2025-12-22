@@ -849,39 +849,45 @@ const App = () => {
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
-  const unmuteTimeout = useRef(null);
 
-  // Autoplay with muted trick: start muted, unmute after 2 seconds
+  // Start music on ANY interaction - as early as possible
   useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      // Start muted (browsers allow muted autoplay)
-      audio.muted = true;
-      audio.volume = 0.35;
-      
-      // Try to play muted immediately
-      audio.play().then(() => {
+    const startMusic = () => {
+      if (!hasInteracted.current && audioRef.current) {
         hasInteracted.current = true;
-        setIsMusicPlaying(true);
+        audioRef.current.muted = false;
+        audioRef.current.volume = 0.35;
+        audioRef.current.play().then(() => {
+          setIsMusicPlaying(true);
+        }).catch(() => {});
         
-        // After 2 seconds, unmute the audio
-        unmuteTimeout.current = setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.muted = false;
-            audioRef.current.volume = 0.35;
-            console.log('Audio unmuted!');
-          }
-        }, 2000);
-      }).catch((err) => {
-        console.log('Even muted autoplay blocked:', err);
-      });
-    }
-    
-    return () => {
-      if (unmuteTimeout.current) {
-        clearTimeout(unmuteTimeout.current);
+        // Remove all listeners after first interaction
+        removeListeners();
       }
     };
+
+    const removeListeners = () => {
+      document.removeEventListener('mouseover', startMusic);
+      document.removeEventListener('mouseenter', startMusic);
+      document.removeEventListener('mousemove', startMusic);
+      document.removeEventListener('click', startMusic);
+      document.removeEventListener('touchstart', startMusic);
+      document.removeEventListener('keydown', startMusic);
+      document.removeEventListener('scroll', startMusic);
+      document.removeEventListener('pointerover', startMusic);
+    };
+
+    // Listen for the earliest possible interactions
+    document.addEventListener('mouseover', startMusic);
+    document.addEventListener('mouseenter', startMusic);
+    document.addEventListener('mousemove', startMusic);
+    document.addEventListener('click', startMusic);
+    document.addEventListener('touchstart', startMusic);
+    document.addEventListener('keydown', startMusic);
+    document.addEventListener('scroll', startMusic);
+    document.addEventListener('pointerover', startMusic);
+
+    return removeListeners;
   }, []);
 
   // Handle audio play/pause 
@@ -896,35 +902,6 @@ const App = () => {
       }
     }
   }, [isMusicPlaying]);
-
-  // Fallback: Auto-play music on first user interaction if autoplay was blocked
-  useEffect(() => {
-    const startMusicOnInteraction = () => {
-      if (!hasInteracted.current && audioRef.current) {
-        hasInteracted.current = true;
-        audioRef.current.muted = false;
-        audioRef.current.volume = 0.35;
-        audioRef.current.play().then(() => {
-          setIsMusicPlaying(true);
-        }).catch(() => {});
-      }
-    };
-
-    // Listen for any user interaction
-    window.addEventListener('click', startMusicOnInteraction);
-    window.addEventListener('touchstart', startMusicOnInteraction);
-    window.addEventListener('keydown', startMusicOnInteraction);
-    window.addEventListener('mousemove', startMusicOnInteraction);
-    window.addEventListener('pointerdown', startMusicOnInteraction);
-
-    return () => {
-      window.removeEventListener('click', startMusicOnInteraction);
-      window.removeEventListener('touchstart', startMusicOnInteraction);
-      window.removeEventListener('keydown', startMusicOnInteraction);
-      window.removeEventListener('mousemove', startMusicOnInteraction);
-      window.removeEventListener('pointerdown', startMusicOnInteraction);
-    };
-  }, []);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
