@@ -849,29 +849,39 @@ const App = () => {
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
+  const unmuteTimeout = useRef(null);
 
   // Autoplay with muted trick: start muted, unmute after 2 seconds
   useEffect(() => {
-    if (audioRef.current) {
+    const audio = audioRef.current;
+    if (audio) {
       // Start muted (browsers allow muted autoplay)
-      audioRef.current.muted = true;
-      audioRef.current.volume = 0.35;
+      audio.muted = true;
+      audio.volume = 0.35;
       
       // Try to play muted immediately
-      audioRef.current.play().then(() => {
+      audio.play().then(() => {
         hasInteracted.current = true;
         setIsMusicPlaying(true);
         
         // After 2 seconds, unmute the audio
-        setTimeout(() => {
+        unmuteTimeout.current = setTimeout(() => {
           if (audioRef.current) {
             audioRef.current.muted = false;
+            audioRef.current.volume = 0.35;
+            console.log('Audio unmuted!');
           }
         }, 2000);
-      }).catch(() => {
-        console.log('Even muted autoplay blocked');
+      }).catch((err) => {
+        console.log('Even muted autoplay blocked:', err);
       });
     }
+    
+    return () => {
+      if (unmuteTimeout.current) {
+        clearTimeout(unmuteTimeout.current);
+      }
+    };
   }, []);
 
   // Handle audio play/pause 
