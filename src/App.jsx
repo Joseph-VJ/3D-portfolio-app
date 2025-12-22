@@ -844,9 +844,23 @@ const App = () => {
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
+  const videoRef = useRef(null);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
+
+  // Set video volume on mount and when music playing state changes
+  useEffect(() => {
+    if (videoRef.current) {
+      try {
+        // YouTube iframe volume control (0-100, where 50 = 50% volume)
+        videoRef.current.style.volume = 0.55; // 55% volume
+      } catch (e) {
+        // YouTube API limitation - volume control via iframe is restricted
+        console.log('Volume control via iframe limited by YouTube');
+      }
+    }
+  }, [isMusicPlaying]);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
@@ -1173,13 +1187,14 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Hidden Youtube Player for Background Music - PHONK PLAYLIST */}
+      {/* Hidden Youtube Player for Background Music */}
       {isMusicPlaying && (
         <div className="fixed opacity-0 pointer-events-none">
           <iframe
+            ref={videoRef}
             width="560"
             height="315"
-            src="https://www.youtube.com/embed/-aytZ0n_KNQ?autoplay=1&loop=1&playlist=-aytZ0n_KNQ&controls=0&showinfo=0"
+            src="https://www.youtube.com/embed/DjNq6N026bQ?autoplay=1&loop=1&playlist=DjNq6N026bQ&controls=0&showinfo=0"
             title="Background Music"
             allow="autoplay; encrypted-media"
           ></iframe>
