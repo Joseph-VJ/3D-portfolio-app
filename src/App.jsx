@@ -840,38 +840,13 @@ const App = () => {
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [ripples, setRipples] = useState([]);
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
-  const iframeRef = useRef(null);
-  const hasUnmuted = useRef(false);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
-
-  // Unmute on first user interaction
-  useEffect(() => {
-    const unmuteOnInteraction = () => {
-      if (!hasUnmuted.current) {
-        hasUnmuted.current = true;
-        setIsMuted(false);
-      }
-    };
-
-    document.addEventListener('mousemove', unmuteOnInteraction);
-    document.addEventListener('click', unmuteOnInteraction);
-    document.addEventListener('touchstart', unmuteOnInteraction);
-    document.addEventListener('keydown', unmuteOnInteraction);
-
-    return () => {
-      document.removeEventListener('mousemove', unmuteOnInteraction);
-      document.removeEventListener('click', unmuteOnInteraction);
-      document.removeEventListener('touchstart', unmuteOnInteraction);
-      document.removeEventListener('keydown', unmuteOnInteraction);
-    };
-  }, []);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
@@ -1198,22 +1173,16 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Background Music Player - YouTube (starts muted, unmutes on interaction) */}
-      <div className="fixed opacity-0 pointer-events-none" style={{ width: 0, height: 0, overflow: 'hidden' }}>
-        {isMusicPlaying && (
-          <iframe
-            ref={iframeRef}
-            key={isMuted ? 'muted' : 'unmuted'}
-            width="1"
-            height="1"
-            src={`https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE&controls=0&showinfo=0&rel=0&mute=${isMuted ? 1 : 0}`}
-            title="Background Music"
-            allow="autoplay; encrypted-media; accelerometer; gyroscope"
-            frameBorder="0"
-            style={{ opacity: 0 }}
-          />
-        )}
-      </div>
+      {/* Background Music Player - YouTube */}
+      {isMusicPlaying && (
+        <iframe
+          style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1 }}
+          src="https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE"
+          title="Background Music"
+          allow="autoplay"
+          frameBorder="0"
+        />
+      )}
 
       {/* Navigation Controls */}
       <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
