@@ -850,24 +850,27 @@ const App = () => {
 
   const ticking = useRef(false);
 
-  // Try to autoplay music immediately when site loads
+  // Autoplay with muted trick: start muted, unmute after 2 seconds
   useEffect(() => {
     if (audioRef.current) {
+      // Start muted (browsers allow muted autoplay)
+      audioRef.current.muted = true;
       audioRef.current.volume = 0.35;
       
-      // Try autoplay immediately (works if user has interacted with site before)
-      const tryAutoplay = async () => {
-        try {
-          await audioRef.current.play();
-          setIsMusicPlaying(true);
-          hasInteracted.current = true;
-        } catch (error) {
-          // Autoplay blocked - will play on first interaction
-          console.log('Autoplay blocked, waiting for interaction');
-        }
-      };
-      
-      tryAutoplay();
+      // Try to play muted immediately
+      audioRef.current.play().then(() => {
+        hasInteracted.current = true;
+        setIsMusicPlaying(true);
+        
+        // After 2 seconds, unmute the audio
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.muted = false;
+          }
+        }, 2000);
+      }).catch(() => {
+        console.log('Even muted autoplay blocked');
+      });
     }
   }, []);
 
@@ -889,6 +892,7 @@ const App = () => {
     const startMusicOnInteraction = () => {
       if (!hasInteracted.current && audioRef.current) {
         hasInteracted.current = true;
+        audioRef.current.muted = false;
         audioRef.current.volume = 0.35;
         audioRef.current.play().then(() => {
           setIsMusicPlaying(true);
