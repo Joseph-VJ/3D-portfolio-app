@@ -447,24 +447,26 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
   };
 
   const getDiscardTransform = (type) => {
-    // Enhanced exit animations
+    // Simple exit animations optimized for performance
     if (isMobile) {
+      // Use simple translateX/Y only - no rotate or scale for smooth performance
       switch(type) {
-        case 'float-up': return `translateY(-150vh) rotate(-5deg) scale(0.8)`;
-        case 'slide-right': return `translateX(150vw) rotate(15deg)`;
-        case 'warp-zoom': return `scale(3) translateZ(500px) rotate(10deg)`; 
-        case 'slide-left': return `translateX(-150vw) rotate(-15deg)`;
-        case 'drop-down': return `translateY(150vh) rotate(5deg) scale(0.8)`;
-        default: return `translateY(-200%)`;
+        case 'float-up': return `translateY(-120vh)`;
+        case 'slide-right': return `translateX(120vw)`;
+        case 'warp-zoom': return `translateX(120vw)`; 
+        case 'slide-left': return `translateX(-120vw)`;
+        case 'drop-down': return `translateY(120vh)`;
+        default: return `translateY(-120vh)`;
       }
     }
+    // Desktop can handle slightly more complex transforms
     switch(type) {
-      case 'float-up': return `translateY(-150vh) rotateX(-30deg) rotateZ(-15deg) scale(0.6)`;
-      case 'slide-right': return `translateX(150vw) rotateY(45deg) rotateZ(20deg) scale(0.7)`;
-      case 'warp-zoom': return `scale(4) translateZ(800px) rotateZ(30deg) rotateX(20deg)`; 
-      case 'slide-left': return `translateX(-150vw) rotateY(-45deg) rotateZ(-20deg) scale(0.7)`;
-      case 'drop-down': return `translateY(150vh) rotateX(45deg) scale(0.5)`;
-      default: return `translateY(-200%) rotateX(-30deg) scale(0.6)`;
+      case 'float-up': return `translateY(-120vh) scale(0.9)`;
+      case 'slide-right': return `translateX(120vw) scale(0.9)`;
+      case 'warp-zoom': return `translateX(120vw) scale(0.9)`; 
+      case 'slide-left': return `translateX(-120vw) scale(0.9)`;
+      case 'drop-down': return `translateY(120vh) scale(0.9)`;
+      default: return `translateY(-120vh) scale(0.9)`;
     }
   };
 
@@ -506,21 +508,18 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
   };
 
   const style = {
-    zIndex: isActive ? 10 : (isPast ? 1 : 10 - (index - activeIndex)),
+    zIndex: isActive ? 10 : (isPast ? 1 : 5),
     transform: getCardTransform(),
     // Hide stacked cards to prevent overlap - only show active card
     opacity: isPast ? 0 : (isActive ? 1 : 0),
     filter: 'none',
-    // Softer shadows on stacked cards
-    boxShadow: isPast ? 'none' : (isActive 
-      ? (isMobile ? '0 20px 60px -15px rgba(0,0,0,0.4)' : getCardShadow())
-      : '0 8px 24px -8px rgba(0,0,0,0.25)'),
-    // Optimized transitions for smooth performance on all devices
-    transition: isMobile 
-      ? 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease, filter 0.25s ease' 
-      : 'all 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
+    // Simple shadow
+    boxShadow: isActive ? '0 10px 40px -10px rgba(0,0,0,0.3)' : 'none',
+    // Ultra simple transitions - linear is smoothest on low-end devices
+    transition: 'transform 0.3s ease-out, opacity 0.2s ease-out',
     willChange: 'transform, opacity',
-    transformStyle: 'preserve-3d'
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden'
   };
 
   // CRT Scanlines - disabled on mobile for performance
