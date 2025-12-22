@@ -850,51 +850,65 @@ const App = () => {
 
   const ticking = useRef(false);
 
-  // Handle audio play/pause with proper browser autoplay handling
+  // Try to autoplay music immediately when site loads
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = 0.35; // 35% volume (lowered)
+      audioRef.current.volume = 0.35;
+      
+      // Try autoplay immediately (works if user has interacted with site before)
+      const tryAutoplay = async () => {
+        try {
+          await audioRef.current.play();
+          setIsMusicPlaying(true);
+          hasInteracted.current = true;
+        } catch (error) {
+          // Autoplay blocked - will play on first interaction
+          console.log('Autoplay blocked, waiting for interaction');
+        }
+      };
+      
+      tryAutoplay();
+    }
+  }, []);
+
+  // Handle audio play/pause 
+  useEffect(() => {
+    if (audioRef.current && hasInteracted.current) {
+      audioRef.current.volume = 0.35;
       
       if (isMusicPlaying) {
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log('Autoplay prevented by browser:', error);
-          });
-        }
+        audioRef.current.play().catch(() => {});
       } else {
         audioRef.current.pause();
       }
     }
   }, [isMusicPlaying]);
 
-  // Auto-play music on first user interaction (click/touch anywhere)
+  // Fallback: Auto-play music on first user interaction if autoplay was blocked
   useEffect(() => {
-    const startMusicOnInteraction = (e) => {
+    const startMusicOnInteraction = () => {
       if (!hasInteracted.current && audioRef.current) {
         hasInteracted.current = true;
         audioRef.current.volume = 0.35;
         audioRef.current.play().then(() => {
           setIsMusicPlaying(true);
-        }).catch(err => {
-          console.log('Audio play failed:', err);
-        });
+        }).catch(() => {});
       }
     };
 
-    // Listen for any user interaction on the whole window
+    // Listen for any user interaction
     window.addEventListener('click', startMusicOnInteraction);
     window.addEventListener('touchstart', startMusicOnInteraction);
     window.addEventListener('keydown', startMusicOnInteraction);
-    window.addEventListener('scroll', startMusicOnInteraction);
     window.addEventListener('mousemove', startMusicOnInteraction);
+    window.addEventListener('pointerdown', startMusicOnInteraction);
 
     return () => {
       window.removeEventListener('click', startMusicOnInteraction);
       window.removeEventListener('touchstart', startMusicOnInteraction);
       window.removeEventListener('keydown', startMusicOnInteraction);
-      window.removeEventListener('scroll', startMusicOnInteraction);
       window.removeEventListener('mousemove', startMusicOnInteraction);
+      window.removeEventListener('pointerdown', startMusicOnInteraction);
     };
   }, []);
 
