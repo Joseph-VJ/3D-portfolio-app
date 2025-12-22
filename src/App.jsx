@@ -473,17 +473,18 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
     ? `translateX(${swipeOffset.x}px) rotate(${swipeOffset.x * 0.02}deg)`
     : '';
 
-  // Card positioning - create stacked deck effect
+  // Card positioning - create stacked deck effect at bottom
   const getCardTransform = () => {
     if (isPast) {
       return getDiscardTransform(item.animation);
     }
     
-    // Stacked deck effect: show cards behind the active one
+    // Stacked deck effect: show cards at the bottom edge, outside the active card
     if (!isActive) {
-      const offset = (index - activeIndex) * (isMobile ? 12 : 15); // Spacing between stacked cards
-      const scaleOffset = (index - activeIndex) * 0.04; // Each card slightly smaller
-      return `translateY(${offset}px) translateZ(-${offset * 3}px) scale(${0.96 - scaleOffset})`;
+      const offset = (index - activeIndex) * (isMobile ? 8 : 10); // Less spacing for cleaner look
+      const scaleOffset = (index - activeIndex) * 0.03; // Each card slightly smaller
+      // Position cards at the bottom by using negative translateY to push them down
+      return `translateY(${offset}px) translateZ(-${offset * 5}px) scale(${0.98 - scaleOffset})`;
     }
     
     if (isMobile) {
@@ -508,16 +509,16 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
     zIndex: isActive ? 10 : (isPast ? 1 : 10 - (index - activeIndex)),
     transform: getCardTransform(),
     // Show stacked cards with fade effect
-    opacity: isPast ? 0 : (isActive ? 1 : Math.max(0.3, 1 - (index - activeIndex) * 0.15)),
-    filter: !isActive && !isPast ? 'brightness(0.8)' : 'none',
+    opacity: isPast ? 0 : (isActive ? 1 : Math.max(0.5, 1 - (index - activeIndex) * 0.1)),
+    filter: !isActive && !isPast ? 'brightness(0.85)' : 'none',
     // Softer shadows on stacked cards
     boxShadow: isPast ? 'none' : (isActive 
       ? (isMobile ? '0 20px 60px -15px rgba(0,0,0,0.4)' : getCardShadow())
-      : '0 10px 30px -10px rgba(0,0,0,0.2)'),
-    // Ultra smooth transitions optimized for older devices
+      : '0 8px 24px -8px rgba(0,0,0,0.25)'),
+    // Optimized transitions for smooth performance on all devices
     transition: isMobile 
-      ? 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease, filter 0.3s ease' 
-      : 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      ? 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease, filter 0.25s ease' 
+      : 'all 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
     willChange: 'transform, opacity',
     transformStyle: 'preserve-3d'
   };
@@ -538,7 +539,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
   return (
     <div 
-      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')} ${entranceClass}`}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')}`}
       style={{
         ...style,
         perspective: '1500px',
