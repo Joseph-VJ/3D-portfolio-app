@@ -1193,7 +1193,7 @@ const App = () => {
           autoPlay
           loop
           style={{ display: 'none' }}
-          src="https://res.cloudinary.com/demo/video/upload/v1671380666/mashuq_haque_airtel_phonk_ar_rahman.mp3"
+          src="/phonk.mp3"
         />
       )}
 
