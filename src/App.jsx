@@ -860,7 +860,6 @@ const App = () => {
         if (playPromise !== undefined) {
           playPromise.catch(error => {
             console.log('Autoplay prevented by browser:', error);
-            setIsMusicPlaying(false);
           });
         }
       } else {
@@ -871,22 +870,31 @@ const App = () => {
 
   // Auto-play music on first user interaction (click/touch anywhere)
   useEffect(() => {
-    const startMusicOnInteraction = () => {
-      if (!hasInteracted.current) {
+    const startMusicOnInteraction = (e) => {
+      if (!hasInteracted.current && audioRef.current) {
         hasInteracted.current = true;
-        setIsMusicPlaying(true);
+        audioRef.current.volume = 0.35;
+        audioRef.current.play().then(() => {
+          setIsMusicPlaying(true);
+        }).catch(err => {
+          console.log('Audio play failed:', err);
+        });
       }
     };
 
-    // Listen for any user interaction
-    document.addEventListener('click', startMusicOnInteraction, { once: true });
-    document.addEventListener('touchstart', startMusicOnInteraction, { once: true });
-    document.addEventListener('keydown', startMusicOnInteraction, { once: true });
+    // Listen for any user interaction on the whole window
+    window.addEventListener('click', startMusicOnInteraction);
+    window.addEventListener('touchstart', startMusicOnInteraction);
+    window.addEventListener('keydown', startMusicOnInteraction);
+    window.addEventListener('scroll', startMusicOnInteraction);
+    window.addEventListener('mousemove', startMusicOnInteraction);
 
     return () => {
-      document.removeEventListener('click', startMusicOnInteraction);
-      document.removeEventListener('touchstart', startMusicOnInteraction);
-      document.removeEventListener('keydown', startMusicOnInteraction);
+      window.removeEventListener('click', startMusicOnInteraction);
+      window.removeEventListener('touchstart', startMusicOnInteraction);
+      window.removeEventListener('keydown', startMusicOnInteraction);
+      window.removeEventListener('scroll', startMusicOnInteraction);
+      window.removeEventListener('mousemove', startMusicOnInteraction);
     };
   }, []);
 
