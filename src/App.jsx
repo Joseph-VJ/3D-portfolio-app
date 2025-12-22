@@ -839,12 +839,13 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false); // Start false, user must click
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [ripples, setRipples] = useState([]);
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
   const audioRef = useRef(null);
+  const hasInteracted = useRef(false);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
@@ -852,7 +853,7 @@ const App = () => {
   // Handle audio play/pause with proper browser autoplay handling
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = 0.55; // 55% volume
+      audioRef.current.volume = 0.35; // 35% volume (lowered)
       
       if (isMusicPlaying) {
         const playPromise = audioRef.current.play();
@@ -867,6 +868,27 @@ const App = () => {
       }
     }
   }, [isMusicPlaying]);
+
+  // Auto-play music on first user interaction (click/touch anywhere)
+  useEffect(() => {
+    const startMusicOnInteraction = () => {
+      if (!hasInteracted.current) {
+        hasInteracted.current = true;
+        setIsMusicPlaying(true);
+      }
+    };
+
+    // Listen for any user interaction
+    document.addEventListener('click', startMusicOnInteraction, { once: true });
+    document.addEventListener('touchstart', startMusicOnInteraction, { once: true });
+    document.addEventListener('keydown', startMusicOnInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('click', startMusicOnInteraction);
+      document.removeEventListener('touchstart', startMusicOnInteraction);
+      document.removeEventListener('keydown', startMusicOnInteraction);
+    };
+  }, []);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
