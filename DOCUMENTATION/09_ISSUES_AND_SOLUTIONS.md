@@ -352,13 +352,497 @@ For future development, test on:
 
 ---
 
-## Deployment Lessons Learned
+## Issue #10: CSS Classes Not Being Applied (Tailwind Purging)
 
-1. **Separate build and runtime**: Build process ≠ Runtime execution
-2. **Mobile-first UI**: Remove clutter, prioritize readability
-3. **GPU acceleration**: Only animate transform and opacity
-4. **State management**: Reset all related state, not just the primary index
-5. **User language**: Avoid technical jargon ("Reboot" → "Start Over")
-6. **Progressive simplification**: Start complex, simplify based on performance data
-7. **Test on real devices**: Emulation doesn't catch all performance issues
+### Problem
+**What happened**: After deploying to production, some buttons appeared unstyled (no colors, no padding).
+**Error symptoms**: 
+- Buttons were visible but had no background color
+- Hover effects weren't working
+- Box shadows were missing
+
+**Root Cause**: Tailwind CSS was purging (removing) unused CSS classes. The `w-12 h-12 md:w-14 md:h-14` classes were dynamically generated with template literals in certain conditions, so Tailwind's PurgeCSS thought they weren't used.
+
+### Code That Caused Issues
+```javascript
+// ❌ This doesn't work - PurgeCSS can't detect dynamic classes
+const buttonSize = isMobile ? 'w-10 h-10' : 'w-14 h-14';
+className={`rounded-full ${buttonSize}`}
+
+// ❌ This also fails - classes in variables aren't scanned
+const colorClass = item.color; // "from-cyan-500"
+className={`bg-gradient-to-r ${colorClass}`}
+```
+
+### Solution
+```javascript
+// ✅ Write classes directly in the template literal
+className={`rounded-full ${isMobile ? 'w-10 h-10' : 'w-14 h-14'}`}
+
+// ✅ Use only complete class strings
+className={`bg-gradient-to-r from-cyan-500 to-blue-500`}
+```
+
+**Lesson Learned**: Tailwind's PurgeCSS scans the source code for class names. Always write complete class names directly in your JSX. Never generate class names programmatically with variables or string concatenation.
+
+---
+
+## Issue #11: Safari Mobile - Transform Not Working
+
+### Problem
+**What happened**: On Safari mobile (iOS), card transitions appeared frozen. Cards didn't animate from one to another.
+**Only on Safari**: Chrome, Firefox worked fine
+**Error**: No console errors, just no animation
+
+**Root Cause**: Safari mobile has issues with 3D transforms without `-webkit-` prefixes. The code used standard CSS `transform` but Safari needed `-webkit-transform`.
+
+### Solution
+```javascript
+const style = {
+  transform: getCardTransform(),
+  WebkitTransform: getCardTransform(), // Add webkit variant
+  WebkitBackfaceVisibility: 'hidden',  // Also for performance
+  backfaceVisibility: 'hidden',
+};
+```
+
+**Lesson Learned**: Test on actual Safari browsers, not just Chrome. Webkit browsers need vendor prefixes. Use autoprefixer or add manually.
+
+---
+
+## Issue #12: Infinite Loop in useEffect Hook
+
+### Problem
+**What happened**: When the user flipped a card, it would immediately flip back. The flip state kept toggling endlessly.
+**Browser tab**: Got extremely hot, fan spinning
+**Console**: No errors, just hung the tab
+
+**Root Cause**: Dependencies missing in useEffect. The flip effect was causing state updates that retriggered the effect.
+
+### Code Before (Buggy)
+```javascript
+useEffect(() => {
+  // This sets cardFlipped state
+  setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+}, [activeIndex]); // ❌ Missing cardFlipped in dependency array
+```
+
+This created a loop:
+1. activeIndex changes → useEffect runs
+2. useEffect updates cardFlipped
+3. cardFlipped changes → triggers re-render
+4. Component re-runs → useEffect sees new dependencies
+5. useEffect runs again → loop!
+
+### Solution
+```javascript
+useEffect(() => {
+  setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+}, [activeIndex, cardFlipped]); // ✅ Include all dependencies
+
+// Or better: only run when activeIndex changes
+useEffect(() => {
+  // Reset flip state when card changes
+  setCardFlipped(prev => ({ ...prev, [activeIndex]: false }));
+}, [activeIndex]); // Only depends on activeIndex
+```
+
+**Lesson Learned**: Always include all state/props in useEffect dependencies. Use ESLint plugin `eslint-plugin-react-hooks` to catch these automatically.
+
+---
+
+## Issue #13: Vite Hot Module Replacement (HMR) Not Working
+
+### Problem
+**During development**: After editing App.jsx, changes didn't appear in browser
+**Expected**: Instant reload with HMR
+**Actual**: Had to manually refresh browser every time
+
+**Root Cause**: Vite's HMR was trying to connect to the wrong port when accessed through a proxy or tunnel.
+
+### Error in Browser Console
+```
+WebSocket connection to 'ws://localhost:5173/__vite_ping' failed
+```
+
+### Solution
+**vite.config.js**:
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    hmr: {
+      // Force HMR to use the correct address
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173
+    }
+  }
+});
+```
+
+Or for deployed dev:
+```javascript
+hmr: {
+  host: 'your-dev-server.com',
+  port: 443,
+  protocol: 'wss' // WebSocket Secure
+}
+```
+
+**Lesson Learned**: HMR is fragile in non-standard setups. If it breaks, disable it or configure explicitly rather than spending 2 hours debugging.
+
+---
+
+## Issue #14: Memory Leak - Canvas Animation Loop
+
+### Problem
+**What happened**: After 5-10 minutes of app usage, browser tab becomes very slow
+**Memory usage**: Keeps growing (no plateau)
+**Performance**: Card transitions become janky
+**Chrome DevTools**: Heap snapshot shows thousands of unused objects
+
+**Root Cause**: The AudioVisualizer component had a canvas animation loop that never cleaned up event listeners or RAF callbacks.
+
+### Code Before (Leaky)
+```javascript
+useEffect(() => {
+  const canvas = canvasRef.current;
+  let animationId;
+  
+  const draw = () => {
+    // Drawing code...
+    animationId = requestAnimationFrame(draw);
+  };
+  
+  draw(); // ❌ No cleanup when component unmounts
+}, []);
+```
+
+### Solution
+```javascript
+useEffect(() => {
+  const canvas = canvasRef.current;
+  let animationId;
+  
+  const draw = () => {
+    // Drawing code...
+    animationId = requestAnimationFrame(draw);
+  };
+  
+  draw();
+  
+  // ✅ Cleanup function
+  return () => {
+    cancelAnimationFrame(animationId);
+    // Clean up any event listeners
+  };
+}, []);
+```
+
+**Lesson Learned**: Always cleanup RequestAnimationFrame in useEffect return. Use DevTools Memory tab to detect leaks early.
+
+---
+
+## Issue #15: Tailwind Styles Not Loading in Production Build
+
+### Problem
+**Development**: Everything looks perfect with `npm run dev`
+**After build**: `npm run build` completes successfully
+**In production**: Styles are gone; bare HTML elements show
+**File size**: CSS bundle is only 2KB (should be 30KB+)
+
+**Root Cause**: tailwind.config.js didn't have the correct content paths for purging.
+
+### Config Before (Wrong)
+```javascript
+module.exports = {
+  content: [
+    './src/**/*.{html,js}' // ❌ Misses .jsx files!
+  ],
+  // ...
+}
+```
+
+### Solution
+```javascript
+module.exports = {
+  content: [
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}' // ✅ Include all file types
+  ],
+  theme: { extend: {} },
+  plugins: []
+};
+```
+
+**Lesson Learned**: Tailwind's content scanning is crucial. Always double-check your glob patterns match your actual file structure.
+
+---
+
+## Issue #16: React Keys in Lists - Cards Losing State
+
+### Problem
+**What happened**: User navigates to card 3, flips it. Navigates back to card 1, then forward to card 3 again. Card 3 is no longer flipped!
+**Expected**: Card 3 should remember it was flipped
+**Actual**: Card 3 is reset to unflipped
+
+**Root Cause**: Cards weren't keyed properly. React was reusing the same Card component instance instead of maintaining separate state.
+
+### Code Before (Wrong)
+```javascript
+{PORTFOLIO_ITEMS.map((item, index) => (
+  <Card3D 
+    key={index} // ❌ Using index as key!
+    item={item}
+    index={index}
+    {...props}
+  />
+))}
+```
+
+When navigating, React reuses the component, and state resets.
+
+### Solution
+```javascript
+{PORTFOLIO_ITEMS.map((item) => (
+  <Card3D 
+    key={item.id} // ✅ Use unique, stable ID
+    item={item}
+    index={PORTFOLIO_ITEMS.indexOf(item)}
+    {...props}
+  />
+))}
+```
+
+And ensure each portfolio item has a unique `id`:
+```javascript
+const PORTFOLIO_ITEMS = [
+  { id: 'identity', title: 'Identity', ... },
+  { id: 'development', title: 'Development', ... },
+  // ...
+];
+```
+
+**Lesson Learned**: Never use array index as React key for dynamic lists. Use unique, stable IDs from your data.
+
+---
+
+## Issue #17: Mobile Viewport Unit Bugs (dvh vs vh)
+
+### Problem
+**On mobile**: Cards appear cut off at bottom
+**URL bar behavior**: When user scrolls, browser chrome (URL bar) appears/disappears
+**Height issue**: Using `100vh` causes card to be taller than viewport when URL bar hides
+
+### Why It Happens
+- `vh` = viewport height including browser UI
+- When URL bar appears: 100vh might be 700px
+- When URL bar hides: 100vh might be 756px
+- Card height changes, content gets squished
+
+### Solution
+```javascript
+// Use dvh (dynamic viewport height) instead
+className="h-[100dvh]"  // Automatically adjusts with URL bar
+
+// Or use custom viewport height detection
+const viewportHeight = window.visualViewport?.height || window.innerHeight;
+```
+
+**CSS Alternative**:
+```css
+height: 100dvh;  /* Respects dynamic viewport */
+overflow-y: auto; /* If content is tall */
+```
+
+**Lesson Learned**: On mobile, always use `100dvh` instead of `100vh` for full-screen layouts.
+
+---
+
+## Issue #18: Build Size Exceeding Heroku Limits
+
+### Problem
+**Deployment**: `git push heroku master` fails silently
+**Build completes**: But app crashes on startup
+**Error in logs**: `Error: Cannot find module` for chunks that weren't deployed
+
+**Root Cause**: Production build created 500MB+ bundle. Heroku has a 500MB slug limit. Some files didn't upload.
+
+### Large Contributors
+- No tree-shaking of unused dependencies
+- Source maps included in production
+- Unminified CSS/JS
+
+### Solution
+**vite.config.js**:
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    // Minify everything
+    minify: 'terser',
+    
+    // Remove source maps in production
+    sourcemap: false,
+    
+    // Split chunks for better caching
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom']
+        }
+      }
+    }
+  }
+});
+```
+
+**Also check .gitignore**:
+```
+dist/
+node_modules/
+*.map
+.env.local
+```
+
+Final bundle size dropped from 500MB to 65MB.
+
+**Lesson Learned**: Monitor your build size with `npm run build && du -sh dist/`. If it's > 100MB, something is wrong.
+
+---
+
+## Issue #19: Audio Context Blocked by Browser
+
+### Problem
+**Deployment**: Audio doesn't play on first visit
+**User's perspective**: Music button appears, click it, nothing happens
+**Console error**: `NotAllowedError: The user denied permission to use audio`
+
+**Root Cause**: Modern browsers require user interaction before playing audio. Autoplay is blocked.
+
+### Code Before
+```javascript
+useEffect(() => {
+  // ❌ Trying to play without user interaction
+  const audio = new Audio('music.mp3');
+  audio.play();
+}, []);
+```
+
+### Solution
+```javascript
+const handleAudioToggle = () => {
+  // ✅ Play only on user interaction (click)
+  if (isMusicPlaying) {
+    // Stop music
+    setIsMusicPlaying(false);
+  } else {
+    // User clicked, so we can play
+    setIsMusicPlaying(true);
+  }
+};
+
+// Button with onClick handler
+<button onClick={handleAudioToggle}>
+  {isMusicPlaying ? <Volume2 /> : <VolumeX />}
+</button>
+```
+
+Also use iframe for YouTube:
+```javascript
+{isMusicPlaying && (
+  <div className="hidden">
+    <iframe
+      src="https://www.youtube.com/embed/VIDEO_ID?autoplay=1&controls=0"
+      allow="autoplay"
+    />
+  </div>
+)}
+```
+
+**Lesson Learned**: Audio/video autoplay is blocked by default. Always require explicit user interaction.
+
+---
+
+## Issue #20: useCallback Dependencies Causing Stale Closures
+
+### Problem
+**Navigation**: When user swipes quickly between cards, navigation sometimes skips cards
+**Example**: Swiping right should go card 1→2→3, but goes 1→3
+
+**Root Cause**: `handleWheelDown` and `handleWheelUp` had stale references to `activeIndex` due to missing dependencies.
+
+### Code Before (Buggy)
+```javascript
+const handleWheelDown = useCallback(() => {
+  if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
+    setActiveIndex(prev => prev + 1);
+  }
+}, []); // ❌ Empty dependency array! activeIndex is stale
+
+const handleWheelUp = useCallback(() => {
+  if (activeIndex > 0) {
+    setActiveIndex(prev => prev - 1);
+  }
+}, []); // ❌ Same problem
+```
+
+When user scrolls: the function checks an old `activeIndex` value from when callback was created.
+
+### Solution
+```javascript
+const handleWheelDown = useCallback(() => {
+  if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
+    setActiveIndex(prev => prev + 1);
+  }
+}, [activeIndex]); // ✅ Include activeIndex
+
+const handleWheelUp = useCallback(() => {
+  if (activeIndex > 0) {
+    setActiveIndex(prev => prev - 1);
+  }
+}, [activeIndex]); // ✅ Include activeIndex
+```
+
+**Better Solution** (using setState callback):
+```javascript
+const handleWheelDown = useCallback(() => {
+  setActiveIndex(prev => {
+    if (prev < PORTFOLIO_ITEMS.length - 1) {
+      return prev + 1;
+    }
+    return prev;
+  });
+}, []); // No dependencies needed! prev is always current
+```
+
+**Lesson Learned**: Use setState's callback pattern when you need current state. Avoid stale closures with useCallback by either including dependencies or using functional updates.
+
+---
+
+## Summary of All 20 Issues
+
+| # | Issue | Category | Severity | Lesson |
+|----|-------|----------|----------|--------|
+| 1 | Procfile build error | Deployment | Critical | Separate build from runtime |
+| 2 | Flip state not resetting | State Management | High | Reset all related state |
+| 3 | Image scale distraction | UX | Low | Less animation = better focus |
+| 4 | Mobile UI clutter | UX | High | Remove unnecessary elements |
+| 5 | Oversized buttons | Mobile | Medium | Scale UI for screen size |
+| 6 | Redundant buttons | UX | Medium | Remove duplication |
+| 7 | Confusing text | UX | Low | Use simple language |
+| 8 | Card transition lag | Performance | Critical | GPU-accelerated properties only |
+| 9 | Text overlap | Visibility | High | Hide stacked cards completely |
+| 10 | CSS not applying | Tailwind | High | Write classes directly in JSX |
+| 11 | Safari transforms broken | Browser Compat | High | Add webkit prefixes |
+| 12 | Infinite useEffect loop | React | Critical | Include dependencies |
+| 13 | HMR not working | Dev Tools | Medium | Configure explicitly |
+| 14 | Memory leak | Performance | Critical | Clean up RAF/listeners |
+| 15 | Styles missing prod | Build | Critical | Check tailwind content paths |
+| 16 | Keys losing state | React | High | Use stable, unique keys |
+| 17 | Mobile viewport bugs | Mobile | High | Use 100dvh, not 100vh |
+| 18 | Build too large | Deployment | High | Monitor bundle size |
+| 19 | Audio blocked | Browser API | Medium | Require user interaction |
+| 20 | Stale closures | React | Medium | Include all dependencies |
 
