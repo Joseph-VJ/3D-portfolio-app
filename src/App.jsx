@@ -840,13 +840,63 @@ const App = () => {
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [ripples, setRipples] = useState([]);
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
+  const iframeRef = useRef(null);
+  const hasUnmuted = useRef(false);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
+
+  // Optimized unmute for ALL devices and interactions
+  useEffect(() => {
+    const unmuteOnInteraction = (e) => {
+      if (!hasUnmuted.current) {
+        hasUnmuted.current = true;
+        setIsMuted(false);
+      }
+    };
+
+    // Desktop interactions
+    document.addEventListener('mousemove', unmuteOnInteraction, { passive: true });
+    document.addEventListener('mouseenter', unmuteOnInteraction, { passive: true });
+    document.addEventListener('click', unmuteOnInteraction);
+    document.addEventListener('keydown', unmuteOnInteraction);
+    
+    // Mobile/Touch interactions
+    document.addEventListener('touchstart', unmuteOnInteraction, { passive: true });
+    document.addEventListener('touchmove', unmuteOnInteraction, { passive: true });
+    document.addEventListener('touchend', unmuteOnInteraction, { passive: true });
+    
+    // Pointer events (modern devices)
+    document.addEventListener('pointerdown', unmuteOnInteraction);
+    document.addEventListener('pointermove', unmuteOnInteraction, { passive: true });
+    
+    // Scroll events
+    document.addEventListener('scroll', unmuteOnInteraction, { passive: true });
+    window.addEventListener('scroll', unmuteOnInteraction, { passive: true });
+    
+    // Focus events (accessibility)
+    window.addEventListener('focus', unmuteOnInteraction);
+
+    return () => {
+      document.removeEventListener('mousemove', unmuteOnInteraction);
+      document.removeEventListener('mouseenter', unmuteOnInteraction);
+      document.removeEventListener('click', unmuteOnInteraction);
+      document.removeEventListener('keydown', unmuteOnInteraction);
+      document.removeEventListener('touchstart', unmuteOnInteraction);
+      document.removeEventListener('touchmove', unmuteOnInteraction);
+      document.removeEventListener('touchend', unmuteOnInteraction);
+      document.removeEventListener('pointerdown', unmuteOnInteraction);
+      document.removeEventListener('pointermove', unmuteOnInteraction);
+      document.removeEventListener('scroll', unmuteOnInteraction);
+      window.removeEventListener('scroll', unmuteOnInteraction);
+      window.removeEventListener('focus', unmuteOnInteraction);
+    };
+  }, []);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
@@ -1173,16 +1223,38 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Background Music Player - YouTube */}
-      {isMusicPlaying && (
-        <iframe
-          style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1 }}
-          src="https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE"
-          title="Background Music"
-          allow="autoplay"
-          frameBorder="0"
-        />
-      )}
+      {/* Background Music - Optimized for all devices (muted autoplay, unmutes on first interaction) */}
+      <div className="fixed" style={{ 
+        position: 'fixed',
+        top: '-9999px',
+        left: '-9999px',
+        width: '1px', 
+        height: '1px', 
+        opacity: 0,
+        pointerEvents: 'none',
+        visibility: 'hidden'
+      }}>
+        {isMusicPlaying && (
+          <iframe
+            ref={iframeRef}
+            key={isMuted ? 'muted' : 'unmuted'}
+            width="1"
+            height="1"
+            src={`https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE&controls=0&showinfo=0&rel=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&mute=${isMuted ? 1 : 0}`}
+            title="Background Music"
+            allow="autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture"
+            allowFullScreen={false}
+            frameBorder="0"
+            loading="eager"
+            importance="high"
+            style={{ 
+              opacity: 0,
+              position: 'absolute',
+              pointerEvents: 'none'
+            }}
+          />
+        )}
+      </div>
 
       {/* Navigation Controls */}
       <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
