@@ -712,10 +712,8 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
           style={{ backfaceVisibility: 'hidden' }}
         >
            <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={scanlineStyle} />
-           {/* Scroll hint text */}
-           <div className="absolute top-3 left-1/2 transform -translate-x-1/2 text-xs md:text-sm text-white/60 font-medium tracking-wider uppercase">
-             Scroll to see next
-           </div>
+           {/* Decorative bg element */}
+           <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${item.color} animate-pulse`} />
            
            <div className="relative z-10 flex-1 flex flex-col justify-center space-y-4 md:space-y-6">
               <div className="space-y-2">
@@ -851,15 +849,14 @@ const App = () => {
 
   const ticking = useRef(false);
 
-  // Set video volume on mount and when music playing state changes
+  // Set audio volume on mount and when music playing state changes
   useEffect(() => {
     if (videoRef.current) {
       try {
-        // YouTube iframe volume control (0-100, where 50 = 50% volume)
-        videoRef.current.style.volume = 0.55; // 55% volume
+        // HTML5 audio volume control (0-1 range, where 0.55 = 55% volume)
+        videoRef.current.volume = 0.55;
       } catch (e) {
-        // YouTube API limitation - volume control via iframe is restricted
-        console.log('Volume control via iframe limited by YouTube');
+        console.log('Error setting audio volume:', e);
       }
     }
   }, [isMusicPlaying]);
@@ -1189,18 +1186,15 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Hidden Youtube Player for Background Music */}
+      {/* Background Music Player - Mashuq Haque Phonk */}
       {isMusicPlaying && (
-        <div className="fixed opacity-0 pointer-events-none">
-          <iframe
-            ref={videoRef}
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/DjNq6N026bQ?autoplay=1&loop=1&playlist=DjNq6N026bQ&controls=0&showinfo=0"
-            title="Background Music"
-            allow="autoplay; encrypted-media"
-          ></iframe>
-        </div>
+        <audio
+          ref={videoRef}
+          autoPlay
+          loop
+          style={{ display: 'none' }}
+          src="https://res.cloudinary.com/demo/video/upload/v1671380666/mashuq_haque_airtel_phonk_ar_rahman.mp3"
+        />
       )}
 
       {/* Navigation Controls */}
