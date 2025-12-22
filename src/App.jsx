@@ -539,11 +539,12 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
   return (
     <div 
-      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')}`}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d overflow-hidden ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')}`}
       style={{
         ...style,
         perspective: '1500px',
-        perspectiveOrigin: '50% 30%'
+        perspectiveOrigin: '50% 30%',
+        isolation: 'isolate'
       }}
       onClick={handleCardClick}
       onTouchStart={(e) => {
@@ -608,7 +609,17 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
         />
       )}
 
-      <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`}>
+      {/* Simple background for stacked cards - shows when content is hidden */}
+      {!isActive && !isPast && (
+        <div 
+          className="absolute inset-0 rounded-3xl bg-slate-900 border border-white/10"
+          style={{
+            boxShadow: '0 8px 24px -8px rgba(0,0,0,0.3)'
+          }}
+        />
+      )}
+
+      <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`} style={{ visibility: isActive ? 'visible' : 'hidden' }}>
         
         {/* FRONT FACE */}
         <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden shadow-2xl group transition-all duration-100
