@@ -844,7 +844,6 @@ const App = () => {
   const [touchPos, setTouchPos] = useState(null);
   const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
-  const audioRef = useRef(null);
   const hasInteracted = useRef(false);
   const isMobile = useIsMobile();
 
@@ -853,13 +852,9 @@ const App = () => {
   // Start music on ANY interaction - as early as possible
   useEffect(() => {
     const startMusic = () => {
-      if (!hasInteracted.current && audioRef.current) {
+      if (!hasInteracted.current) {
         hasInteracted.current = true;
-        audioRef.current.muted = false;
-        audioRef.current.volume = 0.35;
-        audioRef.current.play().then(() => {
-          setIsMusicPlaying(true);
-        }).catch(() => {});
+        setIsMusicPlaying(true);
         
         // Remove all listeners after first interaction
         removeListeners();
@@ -889,19 +884,6 @@ const App = () => {
 
     return removeListeners;
   }, []);
-
-  // Handle audio play/pause 
-  useEffect(() => {
-    if (audioRef.current && hasInteracted.current) {
-      audioRef.current.volume = 0.35;
-      
-      if (isMusicPlaying) {
-        audioRef.current.play().catch(() => {});
-      } else {
-        audioRef.current.pause();
-      }
-    }
-  }, [isMusicPlaying]);
 
   // Swipe gesture handling - two-step: flip card first, then navigate
   const handleSwipeLeft = () => {
@@ -1228,14 +1210,19 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Background Music Player - Mashuq Haque Phonk */}
-      <audio
-        ref={audioRef}
-        loop
-        preload="auto"
-        style={{ display: 'none' }}
-        src="/phonk.mp3"
-      />
+      {/* Background Music Player - YouTube */}
+      {isMusicPlaying && (
+        <div className="fixed opacity-0 pointer-events-none" style={{ width: 0, height: 0, overflow: 'hidden' }}>
+          <iframe
+            width="1"
+            height="1"
+            src="https://www.youtube.com/embed/0TP-VCsfieE?autoplay=1&loop=1&playlist=0TP-VCsfieE&controls=0&showinfo=0&mute=0"
+            title="Background Music"
+            allow="autoplay; encrypted-media"
+            style={{ opacity: 0 }}
+          />
+        </div>
+      )}
 
       {/* Navigation Controls */}
       <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
