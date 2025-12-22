@@ -809,12 +809,6 @@ const Header = ({ isMobile = false }) => (
 
 const Progress = ({ total, current, isMobile = false, onDotClick }) => (
   <div className="fixed bottom-4 left-4 md:bottom-8 md:left-8 flex flex-col gap-2 z-50 mix-blend-difference">
-    <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-widest">
-        {isMobile 
-          ? `System Load: ${Math.round(((current + 1) / total) * 100)}%`
-          : <GlitchText text={`System Load: ${Math.round(((current + 1) / total) * 100)}%`} isMobile={isMobile} />
-        }
-    </span>
     <div className="flex gap-1.5">
       {[...Array(total)].map((_, i) => (
         <button 
