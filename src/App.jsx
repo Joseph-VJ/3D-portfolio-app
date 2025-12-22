@@ -824,22 +824,6 @@ const Progress = ({ total, current, isMobile = false, onDotClick }) => (
         />
       ))}
     </div>
-    {/* Enhanced navigation hint */}
-    {current === 0 && (
-      <div className="flex flex-col gap-0.5 text-white/50 text-[9px] mt-1">
-        {isMobile ? (
-          <>
-            <span className="animate-pulse">1st Swipe: View Details</span>
-            <span className="animate-pulse">2nd Swipe: Next Card</span>
-          </>
-        ) : (
-          <>
-            <span className="animate-pulse">1st Scroll: View Details</span>
-            <span className="animate-pulse">2nd Scroll: Next Card</span>
-          </>
-        )}
-      </div>
-    )}
   </div>
 );
 
