@@ -1,6 +1,6 @@
 import React from 'react';
 import { Zap } from 'lucide-react';
-import GlitchText from './ui/GlitchText';
+import GlitchText from '../ui/GlitchText';
 
 const Header = ({ isMobile = false }) => (
   <header className="fixed top-0 left-0 w-full p-4 md:p-8 flex justify-between items-center z-50 pointer-events-none mix-blend-difference">

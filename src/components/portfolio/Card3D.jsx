@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ExternalLink, Code, User, Mail, GraduationCap, Cpu, RefreshCw, Phone, Instagram } from 'lucide-react';
-import GlitchText from './ui/GlitchText';
-import SpeedLines from './ui/SpeedLines';
+import GlitchText from '../ui/GlitchText';
+import SpeedLines from '../ui/SpeedLines';
 
 const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPlaying, isMobile = false, swipeOffset = { x: 0, y: 0 }, isFlipped = false, onFlipChange }) => {
   const [touchFeedback, setTouchFeedback] = useState(false);
@@ -91,8 +91,8 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
     filter: 'none',
     // Simple shadow
     boxShadow: isActive ? '0 10px 40px -10px rgba(0,0,0,0.3)' : 'none',
-    // Ultra simple transitions - linear is smoothest on low-end devices
-    transition: 'transform 0.3s ease-out, opacity 0.2s ease-out',
+    // Smoother cubic-bezier transition for high-end feel
+    transition: 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
     willChange: 'transform, opacity',
     backfaceVisibility: 'hidden',
     WebkitBackfaceVisibility: 'hidden'

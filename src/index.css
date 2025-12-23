@@ -536,3 +536,23 @@ body {
   50% { box-shadow: 0 0 40px currentColor, 0 0 60px currentColor; }
 }
 .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+
+/* Smoother Background Animations */
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+.animate-float-slow {
+  animation: float-slow ease-in-out infinite;
+}
+
+/* High-end smooth easing */
+.ease-out-cubic {
+  transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.ease-in-out-smooth {
+  transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+}
