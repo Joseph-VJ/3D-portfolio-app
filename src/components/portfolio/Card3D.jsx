@@ -275,7 +275,7 @@ const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPla
 
                <div className="flex items-center justify-center gap-2 text-white/50 text-[10px] md:text-xs font-mono uppercase group-hover:text-white transition-colors">
                   <span className="animate-pulse">{'>'}</span>
-                  <span>Tap to decrypt</span>
+                  <span>{isMobile ? 'Swipe to Decrypt' : 'Scroll to Decrypt'}</span>
                   <RefreshCw className={`w-3 h-3 ${isActive && isPlaying ? 'animate-spin' : ''}`} />
                </div>
             </div>
