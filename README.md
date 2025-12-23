@@ -2,7 +2,7 @@
 
 A modern, interactive 3D portfolio showcasing development projects with smooth card flip animations, real-time audio visualization, and responsive mobile design.
 
-**Live Demo**: [Deployed on Heroku](http://vijay-joseph.me/)  
+**Live Demo**: [Deployed on Heroku](https://joseph-vj-portfolio.herokuapp.com)
 **Repository**: [GitHub - Joseph-VJ/3D-portfolio-app](https://github.com/Joseph-VJ/3D-portfolio-app)
 
 ---

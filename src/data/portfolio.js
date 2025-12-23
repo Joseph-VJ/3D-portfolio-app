@@ -1,5 +1,4 @@
-
-const PORTFOLIO_ITEMS = [
+export const PORTFOLIO_ITEMS = [
   {
     id: 1,
     type: 'Identity',
@@ -77,5 +76,3 @@ const PORTFOLIO_ITEMS = [
     animation: "drop-down"
   }
 ];
-
-export default PORTFOLIO_ITEMS;

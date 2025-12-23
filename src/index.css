@@ -4,9 +4,33 @@
 
 /* Enhanced Touch Interactions & Animations */
 
-/* Smooth scroll behavior */
+/* Smooth scroll behavior with scroll-snap support */
 html {
   scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality */
+.scroll-smooth::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+.scroll-smooth {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scroll snap container */
+.scroll-snap-container {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll snap items */
+.scroll-snap-item {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 /* 3D Card Container */
@@ -103,12 +127,12 @@ html {
 /* Card Entrance Pop - subtle scale and glow */
 @keyframes card-pop-in {
   0% {
-    transform: scale(0.95);
+    transform: scale(0.92);
     box-shadow: 0 0 0 rgba(6, 182, 212, 0);
   }
   50% {
-    transform: scale(1.02);
-    box-shadow: 0 0 30px rgba(6, 182, 212, 0.3), 0 0 60px rgba(139, 92, 246, 0.2);
+    transform: scale(1.03);
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.4), 0 0 80px rgba(139, 92, 246, 0.3);
   }
   100% {
     transform: scale(1);
@@ -117,7 +141,7 @@ html {
 }
 
 .card-entrance-pop {
-  animation: card-pop-in 0.5s ease-out forwards;
+  animation: card-pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Disable text selection on interactive elements */
@@ -381,6 +405,27 @@ body {
   overscroll-behavior: none;
 }
 
+/* Smooth card transitions */
+.card-transition-smooth {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.5s ease-out,
+              box-shadow 0.4s ease;
+}
+
+.card-transition-fast {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease-out;
+}
+
+/* Enhanced spring easing for natural feel */
+.spring-bounce {
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.spring-soft {
+  transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
@@ -398,3 +443,96 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #22d3ee, #a78bfa);
 }
+/* Styles moved from App.jsx */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .backdrop-blur-md {
+    backdrop-filter: none;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.perspective-1000 { perspective: 1000px; }
+.preserve-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; }
+.rotate-y-180 { transform: rotateY(180deg); }
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+  25% { transform: translateY(-30px) translateX(10px); opacity: 0.8; }
+  50% { transform: translateY(-50px) translateX(-10px); opacity: 0.5; }
+  75% { transform: translateY(-30px) translateX(15px); opacity: 0.8; }
+}
+.animate-float-particle { animation: float-particle 8s ease-in-out infinite; }
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+.animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+
+@keyframes pulse-fast {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+.animate-pulse-fast { animation: pulse-fast 0.3s ease-in-out; }
+
+@keyframes ping-once {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+.animate-ping-once { animation: ping-once 0.3s ease-out forwards; }
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.animate-ripple { animation: ripple 0.6s ease-out forwards; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 12s linear infinite; }
+
+@keyframes flash {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.animate-flash { animation: flash 0.5s ease-out forwards; }
+
+@keyframes speed-line {
+  0% { transform: translateX(-100%) scaleX(0.1); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%) scaleX(2); opacity: 0; }
+}
+.animate-speed-line { animation: speed-line 0.4s linear forwards; }
+
+@keyframes pulse-beat {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.8; }
+}
+.animate-pulse-beat { animation: pulse-beat 0.6s ease-in-out infinite; }
+
+@keyframes slide-up-fade {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up { animation: slide-up-fade 0.5s ease-out forwards; }
+
+/* Note: glow-pulse might be duplicated but cascade handles it */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px currentColor; }
+  50% { box-shadow: 0 0 40px currentColor, 0 0 60px currentColor; }
+}
+.animate-glow { animation: glow-pulse 2s ease-in-out infinite; }

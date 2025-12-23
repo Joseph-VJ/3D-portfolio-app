@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useRef, useState } from 'react';
 
 // ============================================
 // TOUCH SWIPE HOOK - Enhanced for mobile
@@ -9,16 +9,16 @@ const useSwipeGesture = (onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown) => {
   const [swiping, setSwiping] = useState(false);
   const [swipeOffset, setSwipeOffset] = useState({ x: 0, y: 0 });
 
-  const onTouchStart = useCallback((e) => {
+  const onTouchStart = (e) => {
     touchEnd.current = { x: 0, y: 0 };
     touchStart.current = {
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY
     };
     setSwiping(true);
-  }, []);
+  };
 
-  const onTouchMove = useCallback((e) => {
+  const onTouchMove = (e) => {
     touchEnd.current = {
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY
@@ -26,9 +26,9 @@ const useSwipeGesture = (onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown) => {
     const offsetX = touchEnd.current.x - touchStart.current.x;
     const offsetY = touchEnd.current.y - touchStart.current.y;
     setSwipeOffset({ x: offsetX * 0.3, y: offsetY * 0.1 });
-  }, []);
+  };
 
-  const onTouchEnd = useCallback(() => {
+  const onTouchEnd = () => {
     setSwiping(false);
     setSwipeOffset({ x: 0, y: 0 });
 
@@ -37,7 +37,7 @@ const useSwipeGesture = (onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown) => {
     const distanceX = touchStart.current.x - touchEnd.current.x;
     const distanceY = touchStart.current.y - touchEnd.current.y;
     const isHorizontal = Math.abs(distanceX) > Math.abs(distanceY);
-    const threshold = 50;
+    const threshold = 20; // Reduced for easier navigation
 
     if (isHorizontal) {
       if (distanceX > threshold) onSwipeLeft?.();
@@ -46,7 +46,7 @@ const useSwipeGesture = (onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown) => {
       if (distanceY > threshold) onSwipeUp?.();
       else if (distanceY < -threshold) onSwipeDown?.();
     }
-  }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown]);
+  };
 
   return { onTouchStart, onTouchMove, onTouchEnd, swiping, swipeOffset };
 };

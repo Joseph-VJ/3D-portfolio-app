@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, User, Mail, Code, GraduationCap, Cpu, Phone, Instagram, ExternalLink, RefreshCw } from 'lucide-react';
+import { ArrowRight, ExternalLink, Code, User, Mail, GraduationCap, Cpu, RefreshCw, Phone, Instagram } from 'lucide-react';
 import GlitchText from './ui/GlitchText';
+import SpeedLines from './ui/SpeedLines';
 
-const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouseY, isPlaying, isMobile = false, swipeOffset = { x: 0, y: 0 } }) => {
-  const [flipped, setFlipped] = useState(false);
+const Card3D = ({ item, index, activeIndex, onNext, total, mouseX, mouseY, isPlaying, isMobile = false, swipeOffset = { x: 0, y: 0 }, isFlipped = false, onFlipChange }) => {
   const [touchFeedback, setTouchFeedback] = useState(false);
   const [enterAnim, setEnterAnim] = useState(false);
   const isActive = index === activeIndex;
   const isPast = index < activeIndex;
 
   useEffect(() => {
-    if (!isActive) setFlipped(false);
     if (isActive) {
       setEnterAnim(true);
       const animTimer = setTimeout(() => setEnterAnim(false), 500);
@@ -24,24 +23,26 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
   };
 
   const getDiscardTransform = (type) => {
-    // Enhanced exit animations
+    // Simple exit animations optimized for performance
     if (isMobile) {
+      // Use simple translateX/Y only - no rotate or scale for smooth performance
       switch(type) {
-        case 'float-up': return `translateY(-150vh) rotate(-5deg) scale(0.8)`;
-        case 'slide-right': return `translateX(150vw) rotate(15deg)`;
-        case 'warp-zoom': return `scale(3) translateZ(500px) rotate(10deg)`;
-        case 'slide-left': return `translateX(-150vw) rotate(-15deg)`;
-        case 'drop-down': return `translateY(150vh) rotate(5deg) scale(0.8)`;
-        default: return `translateY(-200%)`;
+        case 'float-up': return `translateY(-120vh)`;
+        case 'slide-right': return `translateX(120vw)`;
+        case 'warp-zoom': return `translateX(120vw)`;
+        case 'slide-left': return `translateX(-120vw)`;
+        case 'drop-down': return `translateY(120vh)`;
+        default: return `translateY(-120vh)`;
       }
     }
+    // Desktop can handle slightly more complex transforms
     switch(type) {
-      case 'float-up': return `translateY(-150vh) rotateX(-30deg) rotateZ(-15deg) scale(0.6)`;
-      case 'slide-right': return `translateX(150vw) rotateY(45deg) rotateZ(20deg) scale(0.7)`;
-      case 'warp-zoom': return `scale(4) translateZ(800px) rotateZ(30deg) rotateX(20deg)`;
-      case 'slide-left': return `translateX(-150vw) rotateY(-45deg) rotateZ(-20deg) scale(0.7)`;
-      case 'drop-down': return `translateY(150vh) rotateX(45deg) scale(0.5)`;
-      default: return `translateY(-200%) rotateX(-30deg) scale(0.6)`;
+      case 'float-up': return `translateY(-120vh) scale(0.9)`;
+      case 'slide-right': return `translateX(120vw) scale(0.9)`;
+      case 'warp-zoom': return `translateX(120vw) scale(0.9)`;
+      case 'slide-left': return `translateX(-120vw) scale(0.9)`;
+      case 'drop-down': return `translateY(120vh) scale(0.9)`;
+      default: return `translateY(-120vh) scale(0.9)`;
     }
   };
 
@@ -50,23 +51,26 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
     ? `translateX(${swipeOffset.x}px) rotate(${swipeOffset.x * 0.02}deg)`
     : '';
 
-  // Card positioning - only active card visible, no stacked cards behind
+  // Card positioning - create stacked deck effect at bottom
   const getCardTransform = () => {
     if (isPast) {
       return getDiscardTransform(item.animation);
     }
 
-    // Only show the active card - hide cards behind
+    // Stacked deck effect: show cards at the bottom edge, outside the active card
     if (!isActive) {
-      return `translateZ(-100px) scale(0.9)`;
+      const offset = (index - activeIndex) * (isMobile ? 8 : 10); // Less spacing for cleaner look
+      const scaleOffset = (index - activeIndex) * 0.03; // Each card slightly smaller
+      // Position cards at the bottom by using negative translateY to push them down
+      return `translateY(${offset}px) translateZ(-${offset * 5}px) scale(${0.98 - scaleOffset})`;
     }
 
     if (isMobile) {
-      return swipeTransform || 'translateZ(0)';
+      return swipeTransform || 'translateZ(0) scale(1)';
     }
 
-    // Desktop: Active card with mouse interaction
-    return `rotateX(${(mouseY * 0.02)}deg) rotateY(${(mouseX * 0.02)}deg)`;
+    // Desktop: Active card with subtle mouse interaction
+    return `rotateX(${(mouseY * 0.015)}deg) rotateY(${(mouseX * 0.015)}deg) scale(1)`;
   };
 
   // Dynamic shadow for active card only
@@ -80,19 +84,18 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
   };
 
   const style = {
-    zIndex: isActive ? 10 : 1,
+    zIndex: isActive ? 10 : (isPast ? 1 : 5),
     transform: getCardTransform(),
-    // Only active card is visible - hide all background cards
-    opacity: isActive ? 1 : 0,
+    // Hide stacked cards to prevent overlap - only show active card
+    opacity: isPast ? 0 : (isActive ? 1 : 0),
     filter: 'none',
-    // Shadow only on active card
-    boxShadow: isMobile ? '0 10px 30px -10px rgba(0,0,0,0.3)' : getCardShadow(),
-    // Smooth transition
-    transition: isMobile
-      ? 'transform 0.4s ease-out, opacity 0.3s ease'
-      : 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)',
+    // Simple shadow
+    boxShadow: isActive ? '0 10px 40px -10px rgba(0,0,0,0.3)' : 'none',
+    // Ultra simple transitions - linear is smoothest on low-end devices
+    transition: 'transform 0.3s ease-out, opacity 0.2s ease-out',
     willChange: 'transform, opacity',
-    transformStyle: 'preserve-3d'
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden'
   };
 
   // CRT Scanlines - disabled on mobile for performance
@@ -102,13 +105,8 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
   };
 
   const handleCardClick = (e) => {
-    // Don't flip if clicking on a button or link
-    if (e.target.closest('button') || e.target.closest('a')) {
-      return;
-    }
-    if (isActive) {
-      setFlipped(!flipped);
-    }
+    // Flip functionality now controlled by scroll/swipe only
+    // Do nothing on direct click
   };
 
   // Entrance animation class - subtle pop-in effect
@@ -116,11 +114,11 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
 
   return (
     <div
-      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] ${isActive ? 'cursor-pointer' : 'pointer-events-none'} ${entranceClass}`}
+      className={`absolute w-[85vw] h-[80dvh] md:w-[400px] md:h-[700px] card-3d ${isActive ? 'cursor-pointer' : (isPast ? 'pointer-events-none' : 'pointer-events-auto')}`}
       style={{
         ...style,
         perspective: '1500px',
-        perspectiveOrigin: '50% 30%'  // Higher perspective origin for better stack view
+        perspectiveOrigin: '50% 30%'
       }}
       onClick={handleCardClick}
       onTouchStart={(e) => {
@@ -185,7 +183,7 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
         />
       )}
 
-      <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${flipped ? 'rotate-y-180' : ''}`}>
+      <div className={`relative w-full h-full duration-700 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`}>
 
         {/* FRONT FACE */}
         <div className={`absolute inset-0 backface-hidden rounded-3xl overflow-hidden shadow-2xl group transition-all duration-100
@@ -218,6 +216,7 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
           {isPast && !isMobile && (
             <>
                {item.animation === 'warp-zoom' && <div className="absolute inset-0 bg-white animate-flash z-50 mix-blend-overlay" />}
+               <SpeedLines type={item.animation} isMobile={isMobile} />
             </>
           )}
 
@@ -239,7 +238,7 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
             {/* Centering container for image and text */}
             <div className={`flex flex-col items-center justify-center flex-1 ${item.image ? 'gap-3 md:gap-4' : 'gap-6 md:gap-8'}`}>
               {item.image && (
-                 <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl transition-transform duration-300 ${isActive && isPlaying ? 'scale-105' : 'scale-100'}`}>
+                 <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl">
                     <div className={`absolute inset-0 border-2 rounded-full z-10 ${isActive && isPlaying ? 'border-white opacity-100' : 'border-white/20 opacity-50'}`} />
                     <img src={item.image} alt="Vijay Joseph" className="w-full h-full object-cover" />
                  </div>
@@ -295,7 +294,7 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
            <div className="relative z-10 flex-1 flex flex-col justify-center space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <h3 className="text-xl md:text-2xl font-black text-white text-center uppercase tracking-widest">
-                    <GlitchText text="System Data" trigger={flipped} isMobile={isMobile} />
+                    <GlitchText text="System Data" trigger={isFlipped} isMobile={isMobile} />
                 </h3>
                 <div className={`w-full h-[1px] bg-gradient-to-r from-transparent via-[${item.hex}] to-transparent`} />
               </div>
@@ -341,25 +340,28 @@ const Card3D = ({ item, index, activeIndex, onNext, onPrev, total, mouseX, mouse
               )}
            </div>
 
-           <button
-             onClick={(e) => {
-               e.stopPropagation();
-               e.preventDefault();
-               onNext();
-             }}
-             onTouchEnd={(e) => {
-               e.stopPropagation();
-               e.preventDefault();
-               onNext();
-             }}
-             onTouchStart={(e) => {
-               e.stopPropagation();
-             }}
-             className={`relative z-20 w-full py-3 md:py-4 rounded bg-gradient-to-r ${item.color} text-white font-black text-base md:text-lg tracking-widest shadow-lg shadow-${item.accent}-500/30 hover:scale-[1.02] active:scale-95 transition-transform flex items-center justify-center gap-2 group mt-4 md:mt-6 uppercase touch-manipulation`}
-           >
-             <span>{index === total - 1 ? 'Reboot System' : 'Next File'}</span>
-             <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-           </button>
+           {/* Show button only on last card */}
+           {index === total - 1 && (
+             <button
+               onClick={(e) => {
+                 e.stopPropagation();
+                 e.preventDefault();
+                 onNext();
+               }}
+               onTouchEnd={(e) => {
+                 e.stopPropagation();
+                 e.preventDefault();
+                 onNext();
+               }}
+               onTouchStart={(e) => {
+                 e.stopPropagation();
+               }}
+               className={`relative z-20 w-full py-4 md:py-5 rounded-xl bg-gradient-to-r ${item.color} text-white font-black text-lg md:text-xl tracking-widest shadow-2xl hover:shadow-3xl hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4 md:mt-6 uppercase touch-manipulation animate-pulse`}
+             >
+               <span>↻ Start Over</span>
+               <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform animate-bounce" />
+             </button>
+           )}
         </div>
 
       </div>

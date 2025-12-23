@@ -1,53 +1,154 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Volume2, VolumeX } from 'lucide-react';
 
-import PORTFOLIO_ITEMS from './data/portfolio';
+// Hooks
 import useIsMobile from './hooks/useIsMobile';
 import useSwipeGesture from './hooks/useSwipeGesture';
+import useWheelScroll from './hooks/useWheelScroll';
 
+// Data
+import { PORTFOLIO_ITEMS } from './data/portfolio';
+
+// Components
 import TouchRipple from './components/ui/TouchRipple';
 import ParticleBackground from './components/ui/ParticleBackground';
 import AudioVisualizer from './components/ui/AudioVisualizer';
-import Card3D from './components/Card3D';
 import Header from './components/Header';
 import Progress from './components/Progress';
-import WelcomeScreen from './components/WelcomeScreen';
+import Card3D from './components/Card3D';
+import BackgroundMusic from './components/BackgroundMusic';
 
 const App = () => {
-  const [started, setStarted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [surge, setSurge] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
   const [ripples, setRipples] = useState([]);
   const [touchPos, setTouchPos] = useState(null);
+  const [cardFlipped, setCardFlipped] = useState({}); // Track which cards are flipped
   const containerRef = useRef(null);
+  const hasUnmuted = useRef(false);
   const isMobile = useIsMobile();
 
   const ticking = useRef(false);
 
-  const triggerSurge = useCallback(() => {
-    setSurge(true);
-    setTimeout(() => setSurge(false), 600);
+  // Optimized unmute for ALL devices and interactions
+  useEffect(() => {
+    const unmuteOnInteraction = (e) => {
+      if (!hasUnmuted.current) {
+        console.log('User interaction detected:', e.type);
+        hasUnmuted.current = true;
+        setIsMuted(false);
+        console.log('Music unmuted!');
+      }
+    };
+
+    // Desktop interactions
+    document.addEventListener('mousemove', unmuteOnInteraction, { passive: true });
+    document.addEventListener('mouseenter', unmuteOnInteraction, { passive: true });
+    document.addEventListener('click', unmuteOnInteraction);
+    document.addEventListener('keydown', unmuteOnInteraction);
+
+    // Mobile/Touch interactions
+    document.addEventListener('touchstart', unmuteOnInteraction, { passive: true });
+    document.addEventListener('touchmove', unmuteOnInteraction, { passive: true });
+    document.addEventListener('touchend', unmuteOnInteraction, { passive: true });
+
+    // Pointer events (modern devices)
+    document.addEventListener('pointerdown', unmuteOnInteraction);
+    document.addEventListener('pointermove', unmuteOnInteraction, { passive: true });
+
+    // Scroll events
+    document.addEventListener('scroll', unmuteOnInteraction, { passive: true });
+    window.addEventListener('scroll', unmuteOnInteraction, { passive: true });
+
+    // Focus events (accessibility)
+    window.addEventListener('focus', unmuteOnInteraction);
+
+    return () => {
+      document.removeEventListener('mousemove', unmuteOnInteraction);
+      document.removeEventListener('mouseenter', unmuteOnInteraction);
+      document.removeEventListener('click', unmuteOnInteraction);
+      document.removeEventListener('keydown', unmuteOnInteraction);
+      document.removeEventListener('touchstart', unmuteOnInteraction);
+      document.removeEventListener('touchmove', unmuteOnInteraction);
+      document.removeEventListener('touchend', unmuteOnInteraction);
+      document.removeEventListener('pointerdown', unmuteOnInteraction);
+      document.removeEventListener('pointermove', unmuteOnInteraction);
+      document.removeEventListener('scroll', unmuteOnInteraction);
+      window.removeEventListener('scroll', unmuteOnInteraction);
+      window.removeEventListener('focus', unmuteOnInteraction);
+    };
   }, []);
 
-  // Swipe gesture handling
-  const handleSwipeLeft = useCallback(() => {
-    if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
-      triggerSurge();
-      setActiveIndex(prev => prev + 1);
+  // Swipe gesture handling - two-step: flip card first, then navigate
+  const handleSwipeLeft = () => {
+    // Check if current card is flipped
+    if (!cardFlipped[activeIndex]) {
+      // First swipe: flip the card to show details
+      setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+    } else {
+      // Second swipe: navigate to next card
+      if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
+        triggerSurge();
+        setActiveIndex(prev => prev + 1);
+      }
     }
-  }, [activeIndex, triggerSurge]);
+  };
 
-  const handleSwipeRight = useCallback(() => {
-    if (activeIndex > 0) {
-      triggerSurge();
-      setActiveIndex(prev => prev - 1);
+  const handleSwipeRight = () => {
+    // Check if current card is flipped
+    if (!cardFlipped[activeIndex]) {
+      // First swipe: flip the card to show details
+      setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+    } else {
+      // Second swipe: navigate to previous card
+      if (activeIndex > 0) {
+        triggerSurge();
+        setActiveIndex(prev => prev - 1);
+      }
     }
-  }, [activeIndex, triggerSurge]);
+  };
 
   const swipeHandlers = useSwipeGesture(handleSwipeLeft, handleSwipeRight, handleSwipeLeft, null);
+
+  // Wheel scroll handling - two-step: flip card first, then navigate
+  const handleWheelDown = useCallback(() => {
+    // Check if current card is flipped
+    if (!cardFlipped[activeIndex]) {
+      // First scroll: flip the card to show details
+      setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+    } else {
+      // Second scroll: navigate to next card
+      if (activeIndex < PORTFOLIO_ITEMS.length - 1) {
+        triggerSurge();
+        setActiveIndex(prev => prev + 1);
+      }
+    }
+  }, [activeIndex, cardFlipped]);
+
+  const handleWheelUp = useCallback(() => {
+    // Check if current card is flipped
+    if (!cardFlipped[activeIndex]) {
+      // First scroll: flip the card to show details
+      setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+    } else {
+      // Second scroll: navigate to previous card
+      if (activeIndex > 0) {
+        triggerSurge();
+        setActiveIndex(prev => prev - 1);
+      }
+    }
+  }, [activeIndex, cardFlipped]);
+
+  const wheelHandlers = useWheelScroll(handleWheelDown, handleWheelUp);
+
+  const triggerSurge = () => {
+    setSurge(true);
+    setTimeout(() => setSurge(false), 600);
+  };
 
   // Touch ripple effect
   const handleTouch = (e) => {
@@ -85,15 +186,35 @@ const App = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    if (started) {
-      const timer = setTimeout(() => setLoading(false), 500);
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('mousemove', handleMouseMove);
-      };
-    }
-  }, [started, handleMouseMove]);
+    const timer = setTimeout(() => setLoading(false), 500);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Keyboard navigation - two-step: flip card first, then navigate
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!cardFlipped[activeIndex]) {
+          setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+        } else {
+          handleNext();
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!cardFlipped[activeIndex]) {
+          setCardFlipped(prev => ({ ...prev, [activeIndex]: true }));
+        } else {
+          handlePrev();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleMouseMove, activeIndex]);
 
   const handleNext = () => {
     triggerSurge();
@@ -104,6 +225,7 @@ const App = () => {
        setLoading(true);
        setTimeout(() => {
            setActiveIndex(0);
+           setCardFlipped({}); // Reset all card flips when rebooting
            setTimeout(() => {
                setLoading(false);
            }, 500);
@@ -125,10 +247,6 @@ const App = () => {
     }
   };
 
-  if (!started) {
-    return <WelcomeScreen onEnter={() => setStarted(true)} />;
-  }
-
   const activeItem = PORTFOLIO_ITEMS[activeIndex];
 
   return (
@@ -138,102 +256,8 @@ const App = () => {
       onTouchStart={(e) => { swipeHandlers.onTouchStart(e); handleTouch(e); }}
       onTouchMove={swipeHandlers.onTouchMove}
       onTouchEnd={swipeHandlers.onTouchEnd}
+      onWheel={wheelHandlers.onWheel}
     >
-      <style>{`
-        /* Mobile-first performance optimizations */
-        @media (max-width: 768px) {
-          * {
-            -webkit-tap-highlight-color: transparent;
-          }
-          .backdrop-blur-md {
-            backdrop-filter: none;
-            background-color: rgba(0, 0, 0, 0.5);
-          }
-        }
-        
-        .perspective-1000 { perspective: 1000px; }
-        .preserve-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-          100% { transform: translateY(0px); }
-        }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        
-        @keyframes float-particle {
-          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-          25% { transform: translateY(-30px) translateX(10px); opacity: 0.8; }
-          50% { transform: translateY(-50px) translateX(-10px); opacity: 0.5; }
-          75% { transform: translateY(-30px) translateX(15px); opacity: 0.8; }
-        }
-        .animate-float-particle { animation: float-particle 8s ease-in-out infinite; }
-        
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.1; transform: scale(1); }
-          50% { opacity: 0.3; transform: scale(1.1); }
-        }
-        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
-        
-        @keyframes pulse-fast {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        .animate-pulse-fast { animation: pulse-fast 0.3s ease-in-out; }
-        
-        @keyframes ping-once {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(1.2); opacity: 0; }
-        }
-        .animate-ping-once { animation: ping-once 0.3s ease-out forwards; }
-        
-        @keyframes ripple {
-          0% { transform: scale(0); opacity: 1; }
-          100% { transform: scale(2); opacity: 0; }
-        }
-        .animate-ripple { animation: ripple 0.6s ease-out forwards; }
-        
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
-
-        @keyframes flash {
-          0% { opacity: 0; }
-          50% { opacity: 1; }
-          100% { opacity: 0; }
-        }
-        .animate-flash { animation: flash 0.5s ease-out forwards; }
-
-        @keyframes speed-line {
-          0% { transform: translateX(-100%) scaleX(0.1); opacity: 0; }
-          50% { opacity: 1; }
-          100% { transform: translateX(100%) scaleX(2); opacity: 0; }
-        }
-        .animate-speed-line { animation: speed-line 0.4s linear forwards; }
-
-        @keyframes pulse-beat {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.02); opacity: 0.8; }
-        }
-        .animate-pulse-beat { animation: pulse-beat 0.6s ease-in-out infinite; }
-        
-        @keyframes slide-up-fade {
-          0% { transform: translateY(30px); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slide-up { animation: slide-up-fade 0.5s ease-out forwards; }
-        
-        @keyframes glow-pulse {
-          0%, 100% { box-shadow: 0 0 20px currentColor; }
-          50% { box-shadow: 0 0 40px currentColor, 0 0 60px currentColor; }
-        }
-        .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
-      `}</style>
-
       {/* Touch Ripple Effects */}
       {ripples.map(ripple => (
         <TouchRipple key={ripple.id} x={ripple.x} y={ripple.y} color={activeItem?.hex || 'white'} />
@@ -254,7 +278,7 @@ const App = () => {
         {/* NEON DRIFT VISUALIZER - Fills background behind card */}
         <div className="absolute z-0 top-0 left-0 w-full h-full pointer-events-none">
             <AudioVisualizer 
-              isPlaying={isMusicPlaying && started} 
+              isPlaying={isMusicPlaying}
               colorHex={activeItem ? activeItem.hex : '#ffffff'}
               className="w-full h-full opacity-80 mix-blend-screen"
               isMobile={isMobile}
@@ -274,12 +298,13 @@ const App = () => {
                 total={PORTFOLIO_ITEMS.length}
                 activeIndex={activeIndex}
                 onNext={handleNext}
-                onPrev={handlePrev}
                 mouseX={mousePos.x}
                 mouseY={mousePos.y}
-                isPlaying={isMusicPlaying && started}
+                isPlaying={isMusicPlaying}
                 isMobile={isMobile}
                 swipeOffset={swipeHandlers.swipeOffset}
+                isFlipped={cardFlipped[index] || false}
+                onFlipChange={(flipped) => setCardFlipped(prev => ({ ...prev, [index]: flipped }))}
               />
             </div>
           ))}
@@ -288,18 +313,8 @@ const App = () => {
 
       <Progress total={PORTFOLIO_ITEMS.length} current={activeIndex} isMobile={isMobile} onDotClick={handleDotClick} />
 
-      {/* Hidden Youtube Player for Background Music - PHONK PLAYLIST */}
-      {isMusicPlaying && started && (
-        <div className="fixed opacity-0 pointer-events-none">
-          <iframe
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/-aytZ0n_KNQ?autoplay=1&loop=1&playlist=-aytZ0n_KNQ&controls=0&showinfo=0"
-            title="Background Music"
-            allow="autoplay; encrypted-media"
-          ></iframe>
-        </div>
-      )}
+      {/* Background Music Component */}
+      <BackgroundMusic isMuted={isMuted} />
 
       {/* Navigation Controls */}
       <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-2 md:gap-4 z-50">
@@ -307,21 +322,21 @@ const App = () => {
         {isMobile && activeIndex > 0 && (
           <button 
             onClick={handlePrev}
-            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white active:scale-90 transition-all duration-300"
+            className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white active:scale-90 transition-all duration-300"
           >
-            <ChevronLeft className="w-5 h-5 text-white group-hover:text-black transition-colors" />
+            <ChevronLeft className="w-4 h-4 text-white group-hover:text-black transition-colors" />
           </button>
         )}
         
         <button 
           onClick={() => setIsMusicPlaying(!isMusicPlaying)}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
           title={isMusicPlaying ? "Pause Music" : "Play Music"}
         >
           {isMusicPlaying ? (
-            <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
+            <Volume2 className="w-4 h-4 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
           ) : (
-            <VolumeX className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
+            <VolumeX className="w-4 h-4 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
           )}
         </button>
 
@@ -331,20 +346,11 @@ const App = () => {
         </div>
         <button 
           onClick={handleNext}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group hover:bg-white hover:scale-110 active:scale-95 transition-all duration-300"
         >
-          <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
+          <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-white group-hover:text-black transition-colors" />
         </button>
       </div>
-      
-      {/* Card counter indicator - Mobile */}
-      {isMobile && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50">
-          <div className="px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/80 text-xs font-bold tracking-wider">
-            {activeIndex + 1} / {PORTFOLIO_ITEMS.length}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
